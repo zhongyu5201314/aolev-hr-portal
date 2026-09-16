@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>奥乐V 人事行政系统</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="app-layout">
+    <!-- 顶栏 -->
+    <header class="topbar">
+      <button class="menu-toggle" id="menu-toggle" aria-label="菜单">☰</button>
+      <a class="brand" href="#/" title="返回模块选择首页">
+        <span class="brand__logo">奥</span>
+        <span class="brand__name">奥乐V · 人事行政</span>
+      </a>
+      <div class="topbar__search">
+        <input id="global-search" placeholder="全局搜索制度 / 政策 / SOP …" />
+      </div>
+      <div class="topbar__right">
+        <span class="topbar__bell" title="消息">🔔</span>
+        <select id="role-select" class="role-select" title="角色切换">
+          <option value="HR">HR 管理员</option>
+          <option value="负责人">部门负责人</option>
+          <option value="员工">普通员工</option>
+        </select>
+        <div id="user-badge" class="user-badge"></div>
+      </div>
+    </header>
+
+    <div class="app-body">
+      <!-- 侧边栏 -->
+      <aside class="sidebar" id="sidebar">
+        <nav class="sidebar__nav" id="sidebar-nav"></nav>
+      </aside>
+      <div class="sidebar-mask" id="sidebar-mask"></div>
+
+      <!-- 主内容 -->
+      <main class="main">
+        <div class="breadcrumb" id="breadcrumb"></div>
+        <div class="view" id="view"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- 首屏核心三件套（其余模块脚本由 app.js 按路由懒加载，缩小首屏体积） -->
+  <script defer src="js/utils.js"></script>
+  <script defer src="js/module_selector.js"></script>
+  <script defer src="js/app.js"></script>
+</body>
+</html>
