@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>奥乐V · 人力数据驾驶舱</title>
+<script src="./vendor/echarts.min.js"></script>
+<style>
+  :root{
+    --bg-0:#06122b;
+    --bg-1:#0a1a35;
+    --panel:rgba(16,38,75,0.55);
+    --panel-border:rgba(79,209,255,0.45);
+    --text:#e8f1ff;
+    --text-dim:#9fb8d8;
+    --cyan:#4fd1ff;
+    --magenta:#ff5fa2;
+    --orange:#ff6b35;
+    --green:#10b981;
+    --yellow:#f59e0b;
+    --red:#dc2626;
+    --grid-line:rgba(79,209,255,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#03080f;}
+  body{
+    font-family:"Microsoft YaHei","PingFang SC","Hiragino Sans GB",sans-serif;
+    color:var(--text);
+    display:flex;align-items:center;justify-content:center;
+  }
+  /* 固定设计稿尺寸，整体缩放自适应窗口 */
+  #stage{
+    width:1920px;height:1080px;position:relative;flex:none;
+    transform-origin:center center;
+    background:
+      radial-gradient(1200px 700px at 20% 0%, rgba(30,90,170,0.25), transparent 60%),
+      radial-gradient(1000px 700px at 90% 100%, rgba(60,30,120,0.22), transparent 60%),
+      linear-gradient(135deg, var(--bg-0) 0%, var(--bg-1) 55%, #07142b 100%);
+    overflow:hidden;
+  }
+  /* 细网格 + 星点纹理 */
+  #stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:0.5;
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:48px 48px;
+  }
+  #stage::after{
+    content:"";position:absolute;inset:0;pointer-events:none;opacity:0.6;
+    background-image:radial-gradient(1.4px 1.4px at 12% 22%, rgba(255,255,255,0.8), transparent),
+      radial-gradient(1.2px 1.2px at 64% 14%, rgba(79,209,255,0.9), transparent),
+      radial-gradient(1.6px 1.6px at 88% 44%, rgba(255,255,255,0.7), transparent),
+      radial-gradient(1.1px 1.1px at 33% 78%, rgba(79,209,255,0.8), transparent),
+      radial-gradient(1.3px 1.3px at 72% 86%, rgba(255,255,255,0.6), transparent);
+  }
+
+  /* ===== 顶部栏 ===== */
+  header{
+    position:relative;z-index:5;height:74px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;border-bottom:1px solid rgba(79,209,255,0.25);
+    background:linear-gradient(180deg, rgba(10,30,66,0.85), rgba(10,30,66,0.25));
+  }
+  .brand{display:flex;align-items:center;gap:16px;}
+  .brand .logo{
+    width:42px;height:42px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(135deg,var(--cyan),#1e6fff);color:#03132b;font-weight:800;font-size:20px;
+    box-shadow:0 0 18px rgba(79,209,255,0.6);
+  }
+  .brand h1{font-size:26px;font-weight:700;letter-spacing:2px;
+    background:linear-gradient(90deg,#ffffff,var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .brand .sub{font-size:13px;color:var(--text-dim);letter-spacing:1px;margin-top:2px;}
+  .clock-box{text-align:right;}
+  #clock{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--cyan);text-shadow:0 0 12px rgba(79,209,255,0.6);letter-spacing:1px;}
+  #clock-date{font-size:13px;color:var(--text-dim);margin-top:2px;letter-spacing:1px;}
+  .corner{position:absolute;width:18px;height:18px;border:2px solid var(--cyan);opacity:0.7;}
+  .corner.tl{top:8px;left:8px;border-right:none;border-bottom:none;}
+  .corner.tr{top:8px;right:8px;border-left:none;border-bottom:none;}
+  .corner.bl{bottom:8px;left:8px;border-right:none;border-top:none;}
+  .corner.br{bottom:8px;right:8px;border-left:none;border-top:none;}
+
+  /* ===== 三栏主体 ===== */
+  .dashboard{
+    position:relative;z-index:4;display:flex;gap:18px;padding:16px 18px 8px;
+    height:calc(1080px - 74px - 32px);
+  }
+  .col{display:flex;flex-direction:column;gap:16px;min-width:0;}
+  .col-left,.col-right{width:438px;flex:none;}
+  .col-center{flex:1;min-width:0;}
+
+  /* ===== 面板 ===== */
+  .panel{
+    position:relative;background:var(--panel);border:1px solid var(--panel-border);
+    border-radius:10px;padding:14px 16px 12px;
+    box-shadow:0 0 0 1px rgba(79,209,255,0.06) inset, 0 0 22px rgba(20,70,140,0.35);
+    display:flex;flex-direction:column;min-height:0;backdrop-filter:blur(2px);
+  }
+  .panel::before{content:"";position:absolute;left:10px;top:14px;width:4px;height:16px;border-radius:2px;
+    background:linear-gradient(180deg,var(--cyan),#1e6fff);box-shadow:0 0 8px var(--cyan);}
+  .panel-title{font-size:17px;font-weight:700;letter-spacing:1px;padding-left:14px;margin-bottom:10px;color:#fff;
+    display:flex;align-items:center;justify-content:space-between;}
+  .panel-title .tag{font-size:11px;font-weight:500;color:var(--cyan);border:1px solid rgba(79,209,255,0.4);
+    border-radius:999px;padding:1px 8px;letter-spacing:0;}
+  .panel-note{font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.5;}
+
+  .chart{width:100%;flex:1;min-height:0;}
+
+  /* ===== 左栏：组织概览 6 卡 ===== */
+  .overview-grid{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);gap:12px;flex:1;min-height:0;}
+  .mcard{background:rgba(8,24,52,0.6);border:1px solid rgba(79,209,255,0.22);border-radius:8px;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6px;text-align:center;}
+  .mcard .v{font-size:34px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--cyan);
+    text-shadow:0 0 12px rgba(79,209,255,0.55);line-height:1.1;}
+  .mcard .v small{font-size:14px;color:var(--text-dim);font-weight:600;margin-left:2px;}
+  .mcard .k{font-size:13px;color:var(--text-dim);margin-top:6px;letter-spacing:0.5px;}
+  .mcard .sub{font-size:11px;color:#7fa6d8;margin-top:2px;}
+
+  /* ===== 中栏：KPI 5 卡 ===== */
+  .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;flex:none;height:132px;}
+  .kpi{position:relative;background:linear-gradient(160deg,rgba(20,48,92,0.7),rgba(10,26,53,0.6));
+    border:1px solid rgba(79,209,255,0.3);border-radius:10px;padding:14px 12px;display:flex;flex-direction:column;justify-content:center;}
+  .kpi .k{font-size:13px;color:var(--text-dim);letter-spacing:0.5px;}
+  .kpi .v{font-size:40px;font-weight:800;font-variant-numeric:tabular-nums;color:#fff;
+    text-shadow:0 0 14px rgba(79,209,255,0.5);line-height:1.05;margin:4px 0;}
+  .kpi .v .u{font-size:15px;color:var(--text-dim);font-weight:600;margin-left:3px;}
+  .kpi .d{font-size:11px;color:var(--cyan);}
+  .kpi::after{content:"";position:absolute;right:-1px;top:10px;width:3px;height:26px;border-radius:2px;
+    background:linear-gradient(180deg,var(--orange),#ff9a3d);box-shadow:0 0 8px var(--orange);}
+
+  /* ===== 右栏：关键数字 4 卡 ===== */
+  .bignum-grid{display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);gap:12px;flex:1;min-height:0;}
+  .bignum{background:rgba(8,24,52,0.6);border:1px solid rgba(255,95,162,0.28);border-radius:8px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;}
+  .bignum .v{font-size:38px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--magenta);
+    text-shadow:0 0 16px rgba(255,95,162,0.6);line-height:1.05;}
+  .bignum .k{font-size:13px;color:var(--text-dim);margin-top:6px;letter-spacing:0.5px;}
+
+  /* ===== 右栏：排行表 ===== */
+  .rank-table{width:100%;border-collapse:collapse;font-size:13px;flex:1;min-height:0;}
+  .rank-table th{color:var(--cyan);font-weight:600;text-align:center;padding:6px 4px;border-bottom:1px solid rgba(79,209,255,0.35);font-size:12px;}
+  .rank-table td{padding:7px 4px;text-align:center;border-bottom:1px solid rgba(79,209,255,0.10);color:#d6e6ff;}
+  .rank-table tr:hover td{background:rgba(79,209,255,0.08);}
+  .rank-table td:first-child{text-align:left;color:#fff;}
+  .rank-badge{display:inline-block;width:20px;height:20px;line-height:20px;border-radius:999px;font-size:11px;
+    background:rgba(79,209,255,0.18);color:var(--cyan);margin-right:6px;}
+  .rank-badge.top{background:linear-gradient(135deg,var(--orange),#ff9a3d);color:#1a0e00;font-weight:700;}
+
+  /* ===== 右栏：滚动播报 ===== */
+  .ticker{height:96px;flex:none;overflow:hidden;position:relative;}
+  .ticker-track{display:flex;gap:48px;align-items:center;position:absolute;white-space:nowrap;
+    animation:scrollx 38s linear infinite;}
+  .ticker-item{font-size:15px;color:#d6e6ff;display:inline-flex;align-items:center;gap:8px;}
+  .ticker-item b{color:var(--cyan);font-size:18px;font-weight:800;text-shadow:0 0 10px rgba(79,209,255,0.5);}
+  .ticker-item .dot{width:7px;height:7px;border-radius:999px;background:var(--magenta);box-shadow:0 0 8px var(--magenta);}
+  @keyframes scrollx{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+
+  /* ===== 底部栏 ===== */
+  footer{position:relative;z-index:4;height:32px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 28px;font-size:12px;color:var(--text-dim);border-top:1px solid rgba(79,209,255,0.18);
+    background:rgba(8,22,48,0.6);}
+  footer .warn{color:var(--yellow);}
+
+  /* ===== 状态层 ===== */
+  #loading,#error{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;background:rgba(3,8,15,0.92);gap:18px;}
+  #error{display:none;}
+  .spinner{width:54px;height:54px;border:4px solid rgba(79,209,255,0.2);border-top-color:var(--cyan);
+    border-radius:999px;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #loading .txt{color:var(--cyan);font-size:16px;letter-spacing:2px;}
+  #error .txt{color:var(--red);font-size:18px;font-weight:700;}
+  #error .sub{color:var(--text-dim);font-size:14px;max-width:640px;text-align:center;line-height:1.7;}
+  #error .hr{color:var(--cyan);}
+  #empty{position:absolute;inset:0;z-index:40;display:none;flex-direction:column;
+    align-items:center;justify-content:center;color:var(--text-dim);gap:10px;font-size:16px;}
+</style>
+</head>
+<body>
+<div id="stage">
+  <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+
+  <header>
+    <div class="brand">
+      <div class="logo">奥</div>
+      <div>
+        <h1>奥乐V · 人力数据驾驶舱</h1>
+        <div class="sub">广州市诺晟医疗技术有限公司 · 儿童口腔护理 OEM</div>
+      </div>
+    </div>
+    <div class="clock-box">
+      <div id="clock">--:--:--</div>
+      <div id="clock-date">----年--月--日</div>
+    </div>
+  </header>
+
+  <div class="dashboard">
+    <!-- 左栏 -->
+    <div class="col col-left">
+      <div class="panel" style="flex:0 0 252px;">
+        <div class="panel-title">组织概览<span class="tag">在职口径 · 42人</span></div>
+        <div class="overview-grid" id="overviewGrid"></div>
+      </div>
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">每日考勤异常人次<span class="tag">2026-06</span></div>
+        <div class="chart" id="chartAttendance"></div>
+        <div class="panel-note">⚠ 在职42人考勤仅记录异常/迟到日（0条正常），真实出勤率不可得，改用异常人次口径，<b style="color:var(--green)">数值越低越好</b>。</div>
+      </div>
+      <div class="panel" style="flex:1.05;">
+        <div class="panel-title">部门人员分布<span class="tag">共 8 部门</span></div>
+        <div class="chart" id="chartDeptDist"></div>
+      </div>
+    </div>
+
+    <!-- 中栏 -->
+    <div class="col col-center">
+      <div class="kpi-row" id="kpiRow"></div>
+      <div class="panel" style="flex:1.6;">
+        <div class="panel-title">近 6 个月考勤异常人次与绩效均分<span class="tag">考勤口径截至 2026-06</span></div>
+        <div class="chart" id="chartMain"></div>
+      </div>
+      <div class="panel" style="flex:1.05;">
+        <div class="panel-title">薪酬结构 &amp; 部门人均薪酬指数<span class="tag">仅相对值 · 保密</span></div>
+        <div style="display:flex;gap:14px;flex:1;min-height:0;">
+          <div class="chart" id="chartSalaryStruct" style="flex:0 0 38%;"></div>
+          <div class="chart" id="chartDeptSalary" style="flex:1;"></div>
+        </div>
+        <div class="panel-note">⚠ 薪酬属敏感信息，大屏仅展示占比(%)与指数(公司均值=100)，<b style="color:var(--yellow)">绝对金额一律不出现</b>。部门指数基于 2026-06 编码月干净记录（按 42 人白名单过滤）。</div>
+      </div>
+    </div>
+
+    <!-- 右栏 -->
+    <div class="col col-right">
+      <div class="panel" style="flex:0 0 268px;">
+        <div class="panel-title">花名册信息完整率<span class="tag">主数据质量</span></div>
+        <div class="chart" id="chartGauge"></div>
+      </div>
+      <div class="panel" style="flex:1;">
+        <div class="panel-title">部门排行<span class="tag">成本口径·代理指标</span></div>
+        <table class="rank-table" id="rankTable">
+          <thead><tr><th>部门</th><th>人数</th><th>人均绩效分<br/>(FY2026)</th><th>2026-06<br/>异常人次</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="panel" style="flex:0 0 188px;">
+        <div class="panel-title">关键数字<span class="tag">规模快照</span></div>
+        <div class="bignum-grid" id="bigNumGrid"></div>
+      </div>
+      <div class="panel ticker">
+        <div class="panel-title" style="margin-bottom:6px;">最新动态 · 滚动播报</div>
+        <div style="flex:1;position:relative;overflow:hidden;">
+          <div class="ticker-track" id="tickerTrack"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>数据截止：考勤口径 <b style="color:var(--cyan)">2026-06</b> · 薪酬最新月 2026-07 · 花名册/绩效/培训快照 2026-09-23</div>
+    <div class="warn">⚠ 薪酬仅相对值；考勤为异常人次口径；绩效为 FY2026 单期（非逐月序列）</div>
+  </footer>
+
+  <!-- 状态层 -->
+  <div id="loading"><div class="spinner"></div><div class="txt">数据加载中…</div></div>
+  <div id="error">
+    <div class="txt">图表组件加载失败</div>
+    <div class="sub">本大屏依赖 ECharts 图表库渲染。当前网络可能无法访问 CDN，请检查网络连接后刷新页面。<br/>若图表无法显示，请联系 <span class="hr">HR 数字化支持</span> 核对图表库加载。</div>
+  </div>
+  <div id="empty"><div style="font-size:48px;">📭</div><div>暂无可用数据</div><div style="font-size:13px;">数据接入异常，请联系 HR 数字化支持核对数据源。</div></div>
+</div>
+
+<script>
+/* ============ 内联数据（来自 dashboard_data.json，已按口径准备） ============ */
+const DATA = {
+  "meta": {
+    "label": "数据元信息",
+    "generated_at": "2026-10-15 16:47:21",
+    "data_cutoff_month": "2026-08",
+    "company": "奥乐V（广州市诺晟医疗技术有限公司）",
+    "source_rows_after_filter": {
+      "employees": 42, "attendance_total": 3510, "attendance_roster_matched": 798,
+      "performance_total": 31, "performance_roster_matched": 29, "compensation_total": 237,
+      "compensation_garbage_filtered": 30, "compensation_nonroster_filtered": 95,
+      "compensation_snapshot_valid": 37, "july_perf_goals": 380, "july_perf_scored": 271,
+      "recruit_jobs": 4, "recruit_candidates": 19, "training_courses": 32,
+      "training_postmap": 33, "daily_reports": 2123, "weekly_reports": 103
+    },
+    "data_quality_flags": [
+      "【考勤·重大】在职42人花名册在考勤表中仅覆盖2026-01~2026-06，且全部为异常/迟到记录(请假/缺勤/迟到)，0条'正常'；2026-07/08的2005条'正常'记录全部属于42人花名册之外的47个历史/离职ID，已按口径剔除。",
+      "【薪酬】compensation.csv 中2026-07/08为姓名字段月，存在字段错位(合计与分项之和不符)，已弃用；采用干净的2026-06编码月(emp_id可匹配花名册)。",
+      "【绩效】FY2026绩效分高度集中(97.9~102.0)，各部门人均绩效分均≈100.0，区分度低；7月OGSM为另一口径(380目标/271已打分/32人)。",
+      "【花名册】base/perf/allowance三列为统一占位0，真实薪酬以compensation.csv为准；3名新人的level/contract_type/薪酬为空；E002林朝辉入职日期缺失致司龄无法计算。",
+      "【考勤·修正】大屏考勤已改为异常人次口径(2026-01~06在职异常记录计数：请假656/迟到121/缺勤21)，原\"出勤率\"因在职正常上班日无记录而无法计算，已弃用。"
+    ],
+    "caliber_notes": [
+      "考勤/薪酬/绩效中无法匹配 42 人花名册的 emp_id一律计入历史/离职/脏数据, 不混入在职统计。",
+      "薪酬结构/部门薪酬指数基于 compensation.csv 2026-06 编码月(与花名册 emp_id 可匹配的干净记录); 2026-07/08 姓名字段月存在字段错位未纳入。",
+      "花名册 base/perf/allowance 列为统一占位 0, 真实薪酬以 compensation.csv 为准。",
+      "司龄按文本解析为年(1位小数); E002 林朝辉 入职日期缺失无法计算, 已计为缺失。",
+      "考勤模块一律使用异常人次（请假+迟到+缺勤），不用出勤率；数值越低越好。"
+    ]
+  },
+  "left": {
+    "overview": {
+      "label": "组织概览", "headcount": 42, "dept_count_nonzero": 7, "dept_count_total": 8,
+      "avg_tenure_years": 4.4, "avg_tenure_sample": 40, "avg_age": 36.1,
+      "gender": {"label": "男女比", "male": 20, "female": 22, "ratio": "20:22"},
+      "contract_type": {"label": "合同类型分布", "distribution": {"正式": 39}, "missing": 3}
+    },
+    "attendance_trend": {
+      "label": "每日考勤异常人次(2026-06)", "month": "2026-06",
+      "dates": ["2026-06-01","2026-06-02","2026-06-06","2026-06-07","2026-06-08","2026-06-09","2026-06-11","2026-06-12","2026-06-13","2026-06-14","2026-06-15","2026-06-16","2026-06-18","2026-06-19","2026-06-20","2026-06-21","2026-06-22","2026-06-23","2026-06-25","2026-06-26","2026-06-27","2026-06-28","2026-06-29"],
+      "caveat": "在职42人考勤表仅记录异常/迟到日(0条正常)，真实出勤率不可得，改用异常人次口径（数值越低越好）",
+      "anomaly": [32,32,2,8,1,11,4,2,6,4,5,3,10,12,4,5,1,4,5,7,4,5,2]
+    },
+    "dept_dist": {
+      "label": "部门人数分布",
+      "data": [
+        {"label":"管理层","value":2},{"label":"人事行政部","value":5},{"label":"仓储部","value":4},
+        {"label":"品控部","value":1},{"label":"客服部","value":0},{"label":"市场部","value":11},
+        {"label":"电商运营部","value":17},{"label":"财务部","value":2}
+      ]
+    }
+  },
+  "center": {
+    "kpi_cards": {
+      "label": "核心指标卡", "headcount": 42, "attendance_month": "2026-06",
+      "attendance_note": "真实出勤率数据不支持（在职正常上班日无记录），改用2026-06异常人次",
+      "perf_grading_rate_pct": 71.3, "perf_grading_note": "7月OGSM目标已打分 271/380",
+      "open_positions": 4, "training_courses": 32, "attendance_anomaly_month": 169
+    },
+    "monthly_trend": {
+      "label": "近6个月考勤异常人次与绩效均分",
+      "months": ["2026-01","2026-02","2026-03","2026-04","2026-05","2026-06"],
+      "perf_avg": 100.0, "perf_avg_note": "绩效仅 FY2026 单期(performance.csv)，非逐月，此处为全期均值",
+      "attendance_anomaly": [115,200,55,90,169,169]
+    },
+    "salary_struct": {
+      "label": "薪酬结构(基本/绩效/津贴占比)", "snapshot_month": "2026-06",
+      "base_pct": 76.9, "performance_pct": 19.5, "allowance_pct": 3.6, "valid_headcount": 37, "excluded_zero_salary": 0
+    },
+    "dept_salary_index": {
+      "label": "各部门人均薪酬指数(相对值,公司均值=100)", "company_avg_index": 100,
+      "data": [
+        {"label":"管理层","value":91.4,"headcount":2},{"label":"人事行政部","value":89.4,"headcount":2},
+        {"label":"仓储部","value":52.3,"headcount":3},{"label":"品控部","value":117.0,"headcount":1},
+        {"label":"市场部","value":122.5,"headcount":10},{"label":"电商运营部","value":96.2,"headcount":17},
+        {"label":"财务部","value":101.7,"headcount":2}
+      ]
+    }
+  },
+  "right": {
+    "roster_health": {
+      "label": "花名册信息完整率", "completeness_pct": 97.1, "total_cells": 588, "filled_cells": 571,
+      "missing_by_column": {"title":1,"level":3,"contract_type":3,"manager":1,"base_salary":3,"perf_salary":3,"allowance":3},
+      "notes": "base/perf/allowance 三列在花名册中为统一占位 0（真实薪酬见 compensation.csv），此处按'有值'计；salary 完整性不在本表口径内。"
+    },
+    "dept_rank": {
+      "label": "部门排行",
+      "columns": ["部门","人数","人均绩效分(FY2026)","2026-06异常人次"],
+      "data": [
+        {"label":"电商运营部","headcount":17,"avg_perf":100.0,"anomaly":53},
+        {"label":"市场部","headcount":11,"avg_perf":100.0,"anomaly":74},
+        {"label":"人事行政部","headcount":5,"avg_perf":100.0,"anomaly":6},
+        {"label":"仓储部","headcount":4,"avg_perf":100.0,"anomaly":17},
+        {"label":"管理层","headcount":2,"avg_perf":100.0,"anomaly":6},
+        {"label":"财务部","headcount":2,"avg_perf":100.0,"anomaly":10},
+        {"label":"品控部","headcount":1,"avg_perf":100.0,"anomaly":3}
+      ]
+    },
+    "big_numbers": {
+      "label": "规模数字", "perf_goal_total": 380, "perf_scored": 271, "daily_reports": 2123, "weekly_reports": 103
+    }
+  }
+};
+
+/* ============ 通用主题 ============ */
+const AX = '#9fb8d8';
+const CGrid = 'rgba(79,209,255,0.10)';
+const baseAxis = {
+  axisLine:{lineStyle:{color:'rgba(79,209,255,0.35)'}},
+  axisLabel:{color:AX,fontSize:12},
+  axisTick:{show:false},
+  splitLine:{lineStyle:{color:CGrid}}
+};
+const DEPT_COLORS = ['#4fd1ff','#ff5fa2','#ff9a3d','#10b981','#a78bfa','#f5d142','#36cfc9','#ff7a7a'];
+
+/* ============ 渲染：组织概览 6 卡 ============ */
+function renderOverview(){
+  const o = DATA.left.overview;
+  const ct = o.contract_type;
+  const cards = [
+    {v:o.headcount, u:'人', k:'在职人数'},
+    {v:o.dept_count_total, u:'个', k:'部门数'},
+    {v:o.avg_tenure_years, u:'年', k:'平均司龄'},
+    {v:o.avg_age, u:'岁', k:'平均年龄'},
+    {v:o.gender.ratio, u:'', k:'男女比', sub:'男'+o.gender.male+' / 女'+o.gender.female},
+    {v:ct.distribution['正式'], u:'', k:'合同类型', sub:'正式 '+ct.distribution['正式']+' · 其他 '+ct.missing}
+  ];
+  document.getElementById('overviewGrid').innerHTML = cards.map(c=>`
+    <div class="mcard">
+      <div class="v">${c.v}<small>${c.u}</small></div>
+      <div class="k">${c.k}</div>
+      ${c.sub?`<div class="sub">${c.sub}</div>`:''}
+    </div>`).join('');
+}
+
+/* ============ 渲染：KPI 5 卡 ============ */
+function renderKpi(){
+  const k = DATA.center.kpi_cards;
+  const cards = [
+    {k:'在职人数', v:k.headcount, u:'人', d:'当前在册员工'},
+    {k:'2026-06 异常人次', v:k.attendance_anomaly_month, u:'次', d:'异常人次口径·越低越好'},
+    {k:'绩效打分完成率', v:k.perf_grading_rate_pct, u:'%', d:k.perf_grading_note},
+    {k:'在招职位', v:k.open_positions, u:'个', d:'需求 headcount 合计 5'},
+    {k:'培训课程', v:k.training_courses, u:'门', d:'飞书快照'}
+  ];
+  document.getElementById('kpiRow').innerHTML = cards.map(c=>`
+    <div class="kpi">
+      <div class="k">${c.k}</div>
+      <div class="v">${c.v}<span class="u">${c.u}</span></div>
+      <div class="d">${c.d}</div>
+    </div>`).join('');
+}
+
+/* ============ 渲染：关键数字 4 卡 ============ */
+function renderBigNum(){
+  const b = DATA.right.big_numbers;
+  const cards = [
+    {v:b.perf_goal_total, k:'绩效目标数'},
+    {v:b.perf_scored, k:'已打分目标'},
+    {v:b.daily_reports, k:'日报累计'},
+    {v:b.weekly_reports, k:'周报累计'}
+  ];
+  document.getElementById('bigNumGrid').innerHTML = cards.map(c=>`
+    <div class="bignum"><div class="v">${c.v}</div><div class="k">${c.k}</div></div>`).join('');
+}
+
+/* ============ 渲染：部门排行表 ============ */
+function renderRank(){
+  const rows = DATA.right.dept_rank.data;
+  const tb = document.querySelector('#rankTable tbody');
+  tb.innerHTML = rows.map((r,i)=>`
+    <tr>
+      <td><span class="rank-badge ${i===0?'top':''}">${i+1}</span>${r.label}</td>
+      <td>${r.headcount}</td>
+      <td>${r.avg_perf.toFixed(1)}</td>
+      <td>${r.anomaly}</td>
+    </tr>`).join('');
+}
+
+/* ============ 渲染：滚动播报 ============ */
+function renderTicker(){
+  const d = DATA;
+  const msgs = [
+    `绩效目标 <b>380</b> · 已打分 <b>271</b>（7月OGSM）`,
+    `电商运营部 <b>17</b> 人居各部门之首`,
+    `市场部 <b>11</b> 人 · 人均薪酬指数 <b>122.5</b>（最高）`,
+    `2026-06 考勤异常人次 <b>169</b>（数值越低越好）`,
+    `花名册信息完整率 <b>97.1%</b>`,
+    `在职 <b>42</b> 人 · <b>8</b> 个部门（含客服部 0 人）`,
+    `培训课程 <b>32</b> 门 · 在招职位 <b>4</b> 个`,
+    `仓储部人均薪酬指数 <b>52.3</b>（最低）`,
+    `日报累计 <b>2123</b> 篇 · 周报 <b>103</b> 篇`
+  ];
+  const html = msgs.map(m=>`<span class="ticker-item"><span class="dot"></span>${m}</span>`).join('');
+  document.getElementById('tickerTrack').innerHTML = html + html; /* 复制一份实现无缝滚动 */
+}
+
+/* ============ 图表 ============ */
+let charts = [];
+function reg(c){ charts.push(c); return c; }
+
+function chartAttendance(){
+  const t = DATA.left.attendance_trend;
+  const c = reg(echarts.init(document.getElementById('chartAttendance')));
+  c.setOption({
+    grid:{left:38,right:14,top:18,bottom:54},
+    tooltip:{trigger:'axis',backgroundColor:'rgba(8,24,52,0.9)',borderColor:'#4fd1ff',textStyle:{color:'#e8f1ff'},
+      formatter:p=>`${p[0].axisValue}<br/>异常人次：<b style="color:#4fd1ff">${p[0].data}</b>`},
+    xAxis:{type:'category',data:t.dates.map(d=>d.slice(5)),...baseAxis,axisLabel:{color:AX,fontSize:11,rotate:45,interval:1}},
+    yAxis:{type:'value',...baseAxis,name:'人次',nameTextStyle:{color:AX}},
+    series:[{
+      type:'line',data:t.anomaly,smooth:true,symbol:'circle',symbolSize:5,
+      lineStyle:{color:'#4fd1ff',width:2,shadowColor:'rgba(79,209,255,0.8)',shadowBlur:8},
+      itemStyle:{color:'#4fd1ff'},
+      areaStyle:{color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'rgba(79,209,255,0.45)'},{offset:1,color:'rgba(79,209,255,0.02)'}])}
+    }]
+  });
+}
+
+function chartDeptDist(){
+  const d = DATA.left.dept_dist.data;
+  const c = reg(echarts.init(document.getElementById('chartDeptDist')));
+  c.setOption({
+    tooltip:{trigger:'item',backgroundColor:'rgba(8,24,52,0.9)',borderColor:'#4fd1ff',textStyle:{color:'#e8f1ff'},
+      formatter:p=>`${p.name}：<b>${p.value}</b> 人（${p.percent}%）`},
+    legend:{type:'scroll',orient:'horizontal',bottom:0,textStyle:{color:AX,fontSize:11},itemWidth:10,itemHeight:10},
+    color:DEPT_COLORS,
+    series:[{
+      type:'pie',radius:['42%','68%'],center:['50%','46%'],
+      avoidLabelOverlap:true,
+      label:{color:'#e8f1ff',fontSize:11,formatter:'{b}\n{c}人'},
+      labelLine:{lineStyle:{color:'rgba(79,209,255,0.5)'}},
+      data:d.map(x=>({name:x.label,value:x.value}))
+    }]
+  });
+}
+
+function chartMain(){
+  const m = DATA.center.monthly_trend;
+  const c = reg(echarts.init(document.getElementById('chartMain')));
+  c.setOption({
+    grid:{left:46,right:54,top:42,bottom:34},
+    tooltip:{trigger:'axis',backgroundColor:'rgba(8,24,52,0.9)',borderColor:'#4fd1ff',textStyle:{color:'#e8f1ff'}},
+    legend:{top:6,textStyle:{color:AX,fontSize:12},data:['月度考勤异常人次','FY2026 绩效均分']},
+    xAxis:{type:'category',data:m.months,...baseAxis},
+    yAxis:[
+      {type:'value',name:'异常人次',nameTextStyle:{color:AX},...baseAxis},
+      {type:'value',name:'绩效均分',nameTextStyle:{color:'#ff5fa2'},min:90,max:110,
+        axisLine:{lineStyle:{color:'rgba(255,95,162,0.4)'}},axisLabel:{color:'#ff9ec7',fontSize:12},
+        splitLine:{show:false}}
+    ],
+    series:[
+      {name:'月度考勤异常人次',type:'bar',yAxisIndex:0,data:m.attendance_anomaly,
+        barWidth:'42%',
+        itemStyle:{borderRadius:[4,4,0,0],
+          color:new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#4fd1ff'},{offset:1,color:'rgba(30,111,255,0.35)'}]),
+          shadowColor:'rgba(79,209,255,0.6)',shadowBlur:10}},
+      {name:'FY2026 绩效均分',type:'line',yAxisIndex:1,data:m.months.map(()=>m.perf_avg),
+        symbol:'none',lineStyle:{color:'#ff5fa2',width:2,type:'dashed'},
+        markLine:{silent:true,symbol:'none',lineStyle:{color:'#ff5fa2',type:'dashed',width:2},
+          label:{formatter:'FY2026 绩效均分·单期 100',color:'#ff9ec7',fontSize:11,position:'insideEndTop'},
+          data:[{yAxis:m.perf_avg}]}}
+    ]
+  });
+}
+
+function chartSalaryStruct(){
+  const s = DATA.center.salary_struct;
+  const c = reg(echarts.init(document.getElementById('chartSalaryStruct')));
+  c.setOption({
+    tooltip:{trigger:'item',backgroundColor:'rgba(8,24,52,0.9)',borderColor:'#4fd1ff',textStyle:{color:'#e8f1ff'},
+      formatter:p=>`${p.name}：<b>${p.value}%</b>`},
+    legend:{bottom:0,textStyle:{color:AX,fontSize:11},itemWidth:10,itemHeight:10},
+    color:['#4fd1ff','#ff5fa2','#f5d142'],
+    title:{text:'薪酬结构占比',left:'center',top:2,textStyle:{color:'#e8f1ff',fontSize:13,fontWeight:600}},
+    series:[{
+      type:'pie',radius:['40%','66%'],center:['50%','52%'],
+      label:{color:'#e8f1ff',fontSize:11,formatter:'{b}\n{c}%'},
+      labelLine:{lineStyle:{color:'rgba(79,209,255,0.5)'}},
+      data:[
+        {name:'基本工资',value:s.base_pct},
+        {name:'绩效工资',value:s.performance_pct},
+        {name:'津贴',value:s.allowance_pct}
+      ]
+    }]
+  });
+}
+
+function chartDeptSalary(){
+  const d = DATA.center.dept_salary_index.data.slice().sort((a,b)=>b.value-a.value);
+  const avg = DATA.center.dept_salary_index.company_avg_index;
+  const c = reg(echarts.init(document.getElementById('chartDeptSalary')));
+  c.setOption({
+    grid:{left:78,right:46,top:30,bottom:10},
+    tooltip:{trigger:'axis',axisPointer:{type:'shadow'},backgroundColor:'rgba(8,24,52,0.9)',borderColor:'#4fd1ff',textStyle:{color:'#e8f1ff'},
+      formatter:p=>`${p[0].name}<br/>人均薪酬指数：<b style="color:#4fd1ff">${p[0].data}</b>（均值=100）<br/>人数：${d[p[0].dataIndex].headcount}`},
+    title:{text:'部门人均薪酬指数（公司均值=100）',left:'center',top:2,textStyle:{color:'#e8f1ff',fontSize:13,fontWeight:600}},
+    xAxis:{type:'value',...baseAxis,max:140},
+    yAxis:{type:'category',data:d.map(x=>x.label),...baseAxis,axisLabel:{color:AX,fontSize:12}},
+    series:[{
+      type:'bar',data:d.map(x=>x.value),barWidth:'55%',
+      itemStyle:{borderRadius:[0,4,4,0],
+        color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'rgba(30,111,255,0.5)'},{offset:1,color:'#4fd1ff'}])},
+      label:{show:true,position:'right',color:'#e8f1ff',fontSize:11,formatter:'{c}'},
+      markLine:{silent:true,symbol:'none',lineStyle:{color:'#f5d142',type:'dashed',width:1.5},
+        label:{formatter:'均值 100',color:'#f5d142',fontSize:10},data:[{xAxis:avg}]}
+    }]
+  });
+}
+
+function chartGauge(){
+  const g = DATA.right.roster_health.completeness_pct;
+  const c = reg(echarts.init(document.getElementById('chartGauge')));
+  c.setOption({
+    series:[{
+      type:'gauge',center:['50%','58%'],radius:'82%',startAngle:210,endAngle:-30,min:0,max:100,
+      progress:{show:true,width:14,itemStyle:{color:new echarts.graphic.LinearGradient(0,0,1,0,[{offset:0,color:'#4fd1ff'},{offset:1,color:'#10b981'}])}},
+      axisLine:{lineStyle:{width:14,color:[[1,'rgba(79,209,255,0.15)']]}},
+      axisTick:{show:false},splitLine:{show:false},
+      axisLabel:{color:AX,fontSize:11,distance:14},
+      pointer:{width:4,length:'58%',itemStyle:{color:'#4fd1ff'}},
+      anchor:{show:true,size:10,itemStyle:{color:'#4fd1ff'}},
+      detail:{valueAnimation:true,formatter:'{value}%',color:'#fff',fontSize:34,fontWeight:'bolder',offsetCenter:[0,'34%']},
+      title:{show:true,offsetCenter:[0,'64%'],color:AX,fontSize:12},
+      data:[{value:g,name:'信息完整率'}]
+    }]
+  });
+}
+
+/* ============ 时钟 ============ */
+function tickClock(){
+  const now = new Date();
+  const p = n=>String(n).padStart(2,'0');
+  const week = ['日','一','二','三','四','五','六'][now.getDay()];
+  document.getElementById('clock').textContent = `${p(now.getHours())}:${p(now.getMinutes())}:${p(now.getSeconds())}`;
+  document.getElementById('clock-date').textContent = `${now.getFullYear()}年${p(now.getMonth()+1)}月${p(now.getDate())}日 周${week}`;
+}
+
+/* ============ 自适应缩放 ============ */
+function fitStage(){
+  const s = document.getElementById('stage');
+  const sx = window.innerWidth / 1920;
+  const sy = window.innerHeight / 1080;
+  const scale = Math.min(sx, sy);
+  s.style.transform = `scale(${scale})`;
+}
+
+/* ============ 初始化 ============ */
+function init(){
+  fitStage();
+  window.addEventListener('resize', ()=>{ fitStage(); });
+  tickClock();
+  setInterval(tickClock, 1000);
+
+  if(!DATA || !DATA.left){ document.getElementById('empty').style.display='flex'; document.getElementById('loading').style.display='none'; return; }
+  if(typeof echarts === 'undefined'){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='flex';
+    return;
+  }
+
+  // 文本类渲染（不依赖图表库）
+  renderOverview(); renderKpi(); renderBigNum(); renderRank(); renderTicker();
+
+  // 图表
+  try{
+    chartAttendance(); chartDeptDist(); chartMain(); chartSalaryStruct(); chartDeptSalary(); chartGauge();
+  }catch(e){
+    console.error(e);
+    document.getElementById('error').style.display='flex';
+  }
+  document.getElementById('loading').style.display='none';
+}
+window.addEventListener('load', init);
+// CDN 失败的兜底检测
+setTimeout(()=>{
+  if(typeof echarts === 'undefined' && document.getElementById('loading').style.display!=='none'){
+    document.getElementById('loading').style.display='none';
+    document.getElementById('error').style.display='flex';
+  }
+}, 6000);
+</script>
+</body>
+</html>

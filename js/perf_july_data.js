@@ -253,20 +253,6 @@ window.JULY_PERF = [
     "note": ""
   },
   {
-    "id": "recvozzwEi1CW7",
-    "person": "马婧",
-    "post": "总经理助理",
-    "dept": "总经理助理",
-    "goal": "合同欠款回款率≥90%",
-    "weight": null,
-    "weightPct": null,
-    "score": null,
-    "cycle": "7月",
-    "period": "7月",
-    "deptHead": "马婧 徐阳波",
-    "note": ""
-  },
-  {
     "id": "recvozzwEiPbo1",
     "person": "马婧",
     "post": "总经理助理",
@@ -345,34 +331,6 @@ window.JULY_PERF = [
     "weight": 0.05,
     "weightPct": 5,
     "score": 5.0,
-    "cycle": "7月",
-    "period": "7月",
-    "deptHead": "马婧 徐阳波",
-    "note": ""
-  },
-  {
-    "id": "recvozAkq9t8Ir",
-    "person": "马婧",
-    "post": "总经理助理",
-    "dept": "总经理助理",
-    "goal": "质量问题索赔成功率 ≥ 90%",
-    "weight": null,
-    "weightPct": null,
-    "score": null,
-    "cycle": "7月",
-    "period": "7月",
-    "deptHead": "马婧 徐阳波",
-    "note": ""
-  },
-  {
-    "id": "recvozAkq9KvOL",
-    "person": "马婧",
-    "post": "总经理助理",
-    "dept": "总经理助理",
-    "goal": "关键物料备用供应商覆盖率 ≥ 100%",
-    "weight": null,
-    "weightPct": null,
-    "score": null,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "马婧 徐阳波",
@@ -2500,11 +2458,11 @@ window.JULY_PERF = [
     "goal": "配合公司大单品战略方向，制定库存产品动态安全库存制度：平均安全库存大于20天",
     "weight": 0.4,
     "weightPct": 40,
-    "score": 96.0,
+    "score": 38.4,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJ2TK0",
@@ -2514,11 +2472,11 @@ window.JULY_PERF = [
     "goal": "与供应链部门合作，增加在途产品库存管理，增加总体库存规模50%。",
     "weight": 0.3,
     "weightPct": 30,
-    "score": 96.0,
+    "score": 28.8,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJd8QY",
@@ -2528,11 +2486,11 @@ window.JULY_PERF = [
     "goal": "设置临工使用细则，确保满足平时24小时，大促48小时发货需求，",
     "weight": 0.1,
     "weightPct": 10,
-    "score": 96.0,
+    "score": 9.6,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJdpMZ",
@@ -2542,11 +2500,11 @@ window.JULY_PERF = [
     "goal": "从软硬件两方面入手，优化发货流程各环节，提升单位发货效率及减少错发率。",
     "weight": 0.2,
     "weightPct": 20,
-    "score": 96.0,
+    "score": 19.2,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJdkWN",
@@ -2556,11 +2514,11 @@ window.JULY_PERF = [
     "goal": "制定发货流程，保证发货完成率及准确率达到公司要求。",
     "weight": 0.5,
     "weightPct": 50,
-    "score": 96.0,
+    "score": 48.0,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJpWJb",
@@ -2570,11 +2528,11 @@ window.JULY_PERF = [
     "goal": "通过加强退货流程管理，确保平均退件处理时间小于3小时",
     "weight": 0.2,
     "weightPct": 20,
-    "score": 96.0,
+    "score": 19.2,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJEAE2",
@@ -2584,11 +2542,11 @@ window.JULY_PERF = [
     "goal": "通过系统化推行6S管理，全面规范仓库仓储现场环境、物料存放、，彻底消除现场浪费、作业隐患、环境脏乱问题，提升仓储作业效率、物料管控质量、仓库安全等级，打造整洁、有序、安全、高效的标准化仓储现场。",
     "weight": 0.2,
     "weightPct": 20,
-    "score": 96.0,
+    "score": 19.2,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvroKusJG2XN",
@@ -2598,11 +2556,11 @@ window.JULY_PERF = [
     "goal": "通过加强售后订单流程管理，对接客服部门，完成售后订单的物流问题处理。",
     "weight": 0.1,
     "weightPct": 10,
-    "score": 96.0,
+    "score": 9.6,
     "cycle": "7月",
     "period": "7月",
     "deptHead": "林朝辉 林浩发",
-    "note": ""
+    "note": "手动打分"
   },
   {
     "id": "recvrvme48VvyN",
@@ -5248,6 +5206,132 @@ window.JULY_PERF = [
     "cycle": "7月",
     "period": "7月",
     "deptHead": "谢友念 黄伟",
+    "note": ""
+  },
+  {
+    "id": "recvvldhTAkY4M",
+    "person": "姜同融",
+    "post": "用户运营专员",
+    "dept": "电商运营部",
+    "goal": "企业微信使用新接待流程接待新客户，至少接待300人",
+    "weight": 0.1,
+    "weightPct": 10,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "谢友念 黄伟",
+    "note": ""
+  },
+  {
+    "id": "recvvldj2AOEJK",
+    "person": "姜同融",
+    "post": "用户运营专员",
+    "dept": "电商运营部",
+    "goal": "有赞2026年9月净销售额大于45000元",
+    "weight": 0.4,
+    "weightPct": 40,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "谢友念 黄伟",
+    "note": ""
+  },
+  {
+    "id": "recvvldj2AoRcl",
+    "person": "姜同融",
+    "post": "用户运营专员",
+    "dept": "电商运营部",
+    "goal": "企业微信2026年9月活动客户接待工作",
+    "weight": 0.2,
+    "weightPct": 20,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "谢友念 黄伟",
+    "note": ""
+  },
+  {
+    "id": "recvvldj2APDu8",
+    "person": "姜同融",
+    "post": "用户运营专员",
+    "dept": "电商运营部",
+    "goal": "2026年9月继续通过新流程做用户接待提高用户满意度",
+    "weight": 0.3,
+    "weightPct": 30,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "谢友念 黄伟",
+    "note": ""
+  },
+  {
+    "id": "recvvsY1bsMRGe",
+    "person": "刘焕禹",
+    "post": "市场营销负责人",
+    "dept": "市场部",
+    "goal": "KOL渠道GMV（综合性KOL、视频号性KOL、小红书KOL、抖音/快手KOL）",
+    "weight": null,
+    "weightPct": null,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "刘焕禹 徐阳波",
+    "note": ""
+  },
+  {
+    "id": "recvvsYpaSegIS",
+    "person": "刘焕禹",
+    "post": "市场营销负责人",
+    "dept": "市场部",
+    "goal": "1.医生分销、样板诊所等GMV（10%）\n2.累计合作医生数量（8%）\n3.活跃医生数量（7%）",
+    "weight": null,
+    "weightPct": null,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "刘焕禹 徐阳波",
+    "note": ""
+  },
+  {
+    "id": "recvvsYpTfqXPg",
+    "person": "刘焕禹",
+    "post": "市场营销负责人",
+    "dept": "市场部",
+    "goal": "1.用户案例、医生内容、专业内容等核心信任资产内容数量（10%）\n2.GEO项目进度（10%）",
+    "weight": null,
+    "weightPct": null,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "刘焕禹 徐阳波",
+    "note": ""
+  },
+  {
+    "id": "recvvsYpTfBcbs",
+    "person": "刘焕禹",
+    "post": "市场营销负责人",
+    "dept": "市场部",
+    "goal": "部门日常管理、人才培养、业务复制等组织能力建设",
+    "weight": null,
+    "weightPct": null,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "刘焕禹 徐阳波",
+    "note": ""
+  },
+  {
+    "id": "recvvsYpTfQsy9",
+    "person": "刘焕禹",
+    "post": "市场营销负责人",
+    "dept": "市场部",
+    "goal": "工作计划、经营分析、跨部门协同、重点事项推进及问题闭环",
+    "weight": null,
+    "weightPct": null,
+    "score": null,
+    "cycle": "7月",
+    "period": "7月",
+    "deptHead": "刘焕禹 徐阳波",
     "note": ""
   }
 ];

@@ -244,7 +244,7 @@ window.ANNUAL_PERF = [
   {
     "emp_id": "E026",
     "name": "冯小平",
-    "dept": "供应链",
+    "dept": "品控部",
     "title": "品控主管",
     "level": "M1",
     "completion": 100.0,
@@ -254,7 +254,7 @@ window.ANNUAL_PERF = [
   {
     "emp_id": "E008",
     "name": "林浩发",
-    "dept": "仓储部门",
+    "dept": "仓储部",
     "title": "仓库主管",
     "level": "M1",
     "completion": 100.0,
@@ -264,7 +264,7 @@ window.ANNUAL_PERF = [
   {
     "emp_id": "E006",
     "name": "麦少英",
-    "dept": "仓储部门",
+    "dept": "仓储部",
     "title": "仓库管理员",
     "level": "P2",
     "completion": 100.0,
