@@ -643,6 +643,12 @@ function init(){
   document.getElementById('loading').style.display='none';
 }
 window.addEventListener('load', init);
+// 驾驶舱在 iframe 内被嵌入门户时：按 Esc 通知父页面退出全屏（离线双击无父页，postMessage 安全无副作用）
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Escape' || e.key === 'Esc') {
+    try { window.parent.postMessage({ type: 'cockpit-exit' }, '*'); } catch (_) {}
+  }
+});
 // CDN 失败的兜底检测
 setTimeout(()=>{
   if(typeof echarts === 'undefined' && document.getElementById('loading').style.display!=='none'){

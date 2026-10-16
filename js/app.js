@@ -51,6 +51,8 @@
   }
   let _rt = 0;
   let _cockpitIframe = null; // 人力数据驾驶舱：全屏 iframe 引用，路由切换时回收
+  let _cockpitExitBtn = null; // 驾驶舱「返回门户」浮层按钮
+  let _cockpitKeyHandler = null; // 驾驶舱 Esc 退出监听
 
   const NAV = [
     { path: '/', icon: '🏠', label: '首页', hash: '#/' },
@@ -194,25 +196,53 @@
     return { parts: parts, q: q };
   }
 
-  /* ---------- 人力数据驾驶舱：全屏 iframe 挂载 ---------- */
+  /* ---------- 人力数据驾驶舱：纯全屏模式（隐藏门户壳） ---------- */
+  function cleanupCockpit() {
+    // 路由切换离开驾驶舱时：回收 iframe、浮层按钮、Esc 监听，并还原门户壳
+    if (_cockpitIframe) { _cockpitIframe.remove(); _cockpitIframe = null; }
+    if (_cockpitExitBtn) { _cockpitExitBtn.remove(); _cockpitExitBtn = null; }
+    if (_cockpitKeyHandler) {
+      document.removeEventListener('keydown', _cockpitKeyHandler);
+      _cockpitKeyHandler = null;
+    }
+    document.body.classList.remove('cockpit-mode');
+  }
+
   function renderCockpit() {
     setBreadcrumb(['人力数据驾驶舱']);
     const view = U.el('view');
     if (view) view.innerHTML = '';
-    // 计算顶栏/侧栏实际高度，iframe 精确填充剩余内容区（不遮挡门户壳）
-    const topbar = document.querySelector('.topbar');
-    const sidebar = document.querySelector('.sidebar');
-    const top = topbar ? topbar.offsetHeight : 0;
-    const left = sidebar ? sidebar.offsetWidth : 0;
+    // 纯全屏：隐藏门户顶栏/侧栏，iframe 铺满整屏
+    document.body.classList.add('cockpit-mode');
     const frame = document.createElement('iframe');
     frame.src = 'hr-dashboard.html';
     frame.title = '奥乐V 人力数据驾驶舱';
     frame.style.cssText =
-      'position:fixed;top:' + top + 'px;left:' + left + 'px;' +
-      'width:calc(100vw - ' + left + 'px);height:calc(100vh - ' + top + 'px);' +
-      'border:0;z-index:40;background:#03080f;';
+      'position:fixed;top:0;left:0;width:100vw;height:100vh;' +
+      'border:0;z-index:9999;background:#03080f;';
     document.body.appendChild(frame);
     _cockpitIframe = frame;
+    // 「返回门户」浮层按钮：始终覆盖在 iframe 之上，点击退出全屏
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = '✕ 返回门户';
+    btn.title = '返回奥乐V门户（或按 Esc）';
+    btn.setAttribute('aria-label', '返回门户');
+    btn.style.cssText =
+      'position:fixed;top:16px;right:16px;z-index:10000;' +
+      'padding:8px 16px;border:1px solid rgba(64,158,255,.5);border-radius:6px;' +
+      'background:rgba(8,18,32,.82);color:#cfe3ff;font-size:14px;cursor:pointer;' +
+      'backdrop-filter:blur(4px);box-shadow:0 4px 16px rgba(0,0,0,.4);';
+    btn.addEventListener('mouseenter', function () { btn.style.background = 'rgba(20,40,70,.95)'; });
+    btn.addEventListener('mouseleave', function () { btn.style.background = 'rgba(8,18,32,.82)'; });
+    btn.addEventListener('click', function () { location.hash = '#/'; });
+    document.body.appendChild(btn);
+    _cockpitExitBtn = btn;
+    // Esc 键退出（监听父文档，覆盖 iframe 未获焦场景）
+    _cockpitKeyHandler = function (e) {
+      if (e.key === 'Escape' || e.key === 'Esc') location.hash = '#/';
+    };
+    document.addEventListener('keydown', _cockpitKeyHandler);
   }
 
   async function render() {
@@ -221,7 +251,7 @@
     const parts = r.parts;
     const view = U.el('view');
     U.disposeCharts(); // 切换路由先销毁旧图表
-    if (_cockpitIframe) { _cockpitIframe.remove(); _cockpitIframe = null; } // 回收驾驶舱全屏 iframe
+    cleanupCockpit(); // 回收驾驶舱全屏 iframe / 浮层按钮 / Esc 监听 / 还原门户壳
 
     const deps = resolveDeps(parts);
     if (deps.length) {
@@ -367,6 +397,10 @@
     render();
     global.addEventListener('hashchange', render);
     global.addEventListener('resize', function () { U.resizeCharts(); });
+    // 驾驶舱 iframe 内按 Esc → 退出全屏（iframe 获焦时 keydown 不冒泡到父文档）
+    global.addEventListener('message', function (e) {
+      if (e.data && e.data.type === 'cockpit-exit') location.hash = '#/';
+    });
   }
 
   global.App = { init: init, setBreadcrumb: setBreadcrumb, render: render };
