@@ -5,7 +5,8 @@
  * 明细下钻仍由日报/周报/月报/闭环管控四个页签承接。
  * 数据源：window.MONTHLY_REPORTS(人×月聚合) / DAILY_REPORTS / WEEKLY_REPORTS / OGSM_GOALS / REPORT_META
  *       全部为 sync_feishu_reports.py 已物料化数据，本模块只做前端聚合，不拉飞书。
- * 红绿灯阈值（初版，可在本文件 top 调整）：出勤/关联/完整/按时 四项的绿黄红分界。
+ * v2（2026-10-26）：① 红绿灯阈值改为达标导向，避免全员飘红；② 新增月度环比趋势；
+ *       ③ 新增个人填报 TOP 榜（按有效填报天数）；④ 新增沉默字段部门排行（条形）。
  */
 (function () {
   'use strict';
@@ -21,27 +22,54 @@
   var META = global.REPORT_META || {};
   var TARGET_MONTH = '2026年10月';
 
-  /* 红绿灯阈值（百分比口径；completeness 为 0-1，内部 ×100） */
+  /* 红绿灯阈值（百分比口径；completeness 为 0-1，内部 ×100）
+   * v2 调整为「达标导向」：压低红线，使正常波动不至于全员飘红，黄区为关注、绿区为达标。 */
   var TH = {
-    att:   { good: 90, warn: 75 },   // 出勤率
-    link:  { good: 60, warn: 35 },   // 关联目标率
-    comp:  { good: 60, warn: 35 },   // 字段完整率
+    att:   { good: 85, warn: 70 },   // 出勤率
+    link:  { good: 50, warn: 30 },   // 关联目标率
+    comp:  { good: 60, warn: 40 },   // 字段完整率
     ontime:{ good: 90, warn: 70 },   // 按时率
-    align: { good: 80, warn: 50 }    // OGSM 已对齐(有评分)率
+    align: { good: 70, warn: 40 }    // OGSM 已对齐(有评分)率
   };
   function light(v, th) {
     if (v == null || isNaN(v)) return 'gray';
+    v = Math.min(100, Math.max(0, v));
     if (v >= th.good) return 'green';
     if (v >= th.warn) return 'amber';
     return 'red';
   }
-  var LABEL = { green: '良好', amber: '关注', red: '预警', gray: '无数据' };
+  var LABEL = { green: '达标', amber: '关注', red: '预警', gray: '无数据' };
 
   /* 周报承诺核销（定稿值，数据源：三份 10 月周复盘人工核对，截至 2026-10-24） */
   var PROMISES = { total: 18, full: 2, partial: 7, none: 9,
     breakdown: [['消失（无下文）', 4], ['顺延', 2], ['降级', 1], ['明确失败', 2]] };
 
   function avg(arr) { return arr.length ? arr.reduce(function (x, y) { return x + y; }, 0) / arr.length : null; }
+
+  /* 月份有序列表（按字符串排即可，形如 2026年8月） */
+  function monthsSorted() {
+    var ms = {}; M.forEach(function (r) { if (r.month) ms[r.month] = 1; });
+    return Object.keys(ms).sort();
+  }
+  /* 某月某指标（公司均值） */
+  function monthMetric(month, metric) {
+    var vals = [];
+    M.filter(function (r) { return r.month === month; }).forEach(function (r) {
+      var v = null;
+      if (metric === 'att') v = r.attendance_rate_to_date;
+      else if (metric === 'link') v = r.ogsm_link_rate;
+      else if (metric === 'comp') v = r.completeness != null ? r.completeness * 100 : null;
+      else if (metric === 'ontime') v = r.ontime_rate_a;
+      if (v != null) vals.push(v);
+    });
+    return avg(vals);
+  }
+  function arrow(cur, prev) {
+    if (cur == null || prev == null) return '<span style="color:#9ca3af">▬</span>';
+    if (cur > prev + 0.05) return '<span style="color:#16a34a">▲</span>';
+    if (cur < prev - 0.05) return '<span style="color:#dc2626">▼</span>';
+    return '<span style="color:#9ca3af">▬</span>';
+  }
 
   /* 按部门聚合 10 月 MONTHLY */
   function deptAgg() {
@@ -72,6 +100,21 @@
     var out = {};
     Object.keys(acc).forEach(function (k) { out[k] = avg(acc[k]); });
     return { n: cnt, fill: out };
+  }
+
+  /* 沉默字段部门排行（10 月，按难题策略填写率聚合） */
+  function deptFieldFill() {
+    var map = {};
+    M.filter(function (r) { return r.month === TARGET_MONTH && r.field_fill; }).forEach(function (r) {
+      var d = r.dept && r.dept.trim() ? r.dept : '（未填部门）';
+      if (!map[d]) map[d] = { dept: d, ps: [], ai: [] };
+      var f = r.field_fill;
+      if (f.problem_strategy != null) map[d].ps.push(f.problem_strategy);
+      if (f.ai_efficiency != null) map[d].ai.push(f.ai_efficiency);
+    });
+    return Object.keys(map).map(function (d) {
+      return { dept: d, ps: avg(map[d].ps), ai: avg(map[d].ai) };
+    });
   }
 
   function injectStyle() {
@@ -112,7 +155,25 @@
       '.ck-alert .ico{font-size:18px;line-height:1.2}',
       '.ck-note{font-size:11.5px;color:var(--rb-muted);margin-top:16px;line-height:1.6}',
       '.ck-tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700;margin-left:6px}',
-      '.ck-tag.green{background:#dcfce7;color:#15803d}.ck-tag.amber{background:#fef3c7;color:#b45309}.ck-tag.red{background:#fee2e2;color:#b91c1c}'
+      '.ck-tag.green{background:#dcfce7;color:#15803d}.ck-tag.amber{background:#fef3c7;color:#b45309}.ck-tag.red{background:#fee2e2;color:#b91c1c}',
+      /* v2 新增：环比 / TOP 榜 / 条形 */
+      '.ck-trend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:6px}',
+      '.ck-tr{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:12px;padding:12px 14px}',
+      '.ck-tr .nm{font-size:12.5px;color:var(--rb-muted)}',
+      '.ck-tr .cur{font-size:22px;font-weight:800;color:var(--rb-ink);margin:2px 0}',
+      '.ck-tr .prev{font-size:12px;color:var(--rb-muted)}',
+      '.ck-tr .prev b{color:var(--rb-ink)}',
+      '.ck-top{display:flex;flex-direction:column;gap:8px;margin-top:10px}',
+      '.ck-top-item{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 10px;border:1px solid var(--rb-line);border-radius:9px;background:var(--rb-card)}',
+      '.ck-top-item .rn{color:var(--rb-ink);font-weight:600}',
+      '.ck-top-item .rd{font-weight:800;color:var(--rb-accent)}',
+      '.ck-top-item.low .rd{color:#dc2626}',
+      '.ck-bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}',
+      '.ck-bar-row{display:flex;align-items:center;gap:10px;font-size:13px}',
+      '.ck-bar-row .bn{width:130px;color:var(--rb-ink);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+      '.ck-bar-track{flex:1;background:var(--rb-line);border-radius:6px;height:16px;position:relative;overflow:hidden}',
+      '.ck-bar-fill{height:100%;border-radius:6px}',
+      '.ck-bar-row .bv{width:46px;text-align:right;font-weight:700;color:var(--rb-ink)}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -148,7 +209,7 @@
     var html = '<div class="ck-wrap">';
     html += '<div class="ck-h1">日周月报 · 管理驾驶舱</div>';
     html += '<div class="ck-sub">一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警　|　统计月：<b>' + TARGET_MONTH +
-      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值初版，可在驾驶舱源文件调整</div>';
+      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）</div>';
 
     // KPI 行
     html += '<div class="ck-kpis">';
@@ -179,6 +240,24 @@
       html += '</div>';
     });
     html += '</div>';
+
+    // v2 新增：月度环比趋势
+    var ms = monthsSorted();
+    var two = ms.slice(-2);
+    if (two.length >= 2) {
+      var curM = two[1], prevM = two[0];
+      var metrics = [['att', '日报填报率'], ['link', '关联目标率'], ['comp', '字段完整率'], ['ontime', '按时率']];
+      html += '<div class="ck-sec-t"><span class="bar"></span>月度环比趋势（' + esc(prevM) + ' → ' + esc(curM) + '）</div>';
+      html += '<div class="ck-trend">';
+      metrics.forEach(function (m) {
+        var cur = monthMetric(curM, m[0]);
+        var prev = monthMetric(prevM, m[0]);
+        html += '<div class="ck-tr"><div class="nm">' + m[1] + '</div>' +
+          '<div class="cur">' + (cur != null ? pct(cur) : '—') + ' ' + arrow(cur, prev) + '</div>' +
+          '<div class="prev">上月 <b>' + (prev != null ? pct(prev) : '—') + '</b></div></div>';
+      });
+      html += '</div>';
+    }
 
     // 四模块摘要（带下钻）
     html += '<div class="ck-sec-t"><span class="bar"></span>模块状态 · 一键下钻</div>';
@@ -251,10 +330,57 @@
       html += '</div>';
     }
 
+    // v2 新增：个人填报 TOP 榜
+    var personRows = monthly10.slice().sort(function (a, b) { return (b.distinct_days || 0) - (a.distinct_days || 0); });
+    if (personRows.length) {
+      var topList = personRows.slice(0, 5);
+      var lowList = personRows.slice(-3).reverse();
+      html += '<div class="ck-sec-t"><span class="bar"></span>个人填报 TOP 榜（按本月有效填报天数）</div>';
+      html += '<div class="ck-grid">';
+      html += '<div class="ck-card"><div class="dn"><span>🏆 填报最活跃 TOP 5</span><span class="cnt">' + topList.length + ' 人</span></div><div class="ck-top">';
+      topList.forEach(function (r, i) {
+        html += '<div class="ck-top-item"><span class="rn">' + (i + 1) + '. ' + esc(r.reporter_name || '—') +
+          ' <span style="color:var(--rb-muted);font-weight:500">' + esc(r.dept || '') + '</span></span><span class="rd">' +
+          (r.distinct_days || 0) + ' 天</span></div>';
+      });
+      html += '</div></div>';
+      html += '<div class="ck-card"><div class="dn"><span>⚠️ 填报偏低 末位 3</span><span class="cnt">需关注</span></div><div class="ck-top">';
+      lowList.forEach(function (r) {
+        html += '<div class="ck-top-item low"><span class="rn">' + esc(r.reporter_name || '—') +
+          ' <span style="color:var(--rb-muted);font-weight:500">' + esc(r.dept || '') + '</span></span><span class="rd">' +
+          (r.distinct_days || 0) + ' 天</span></div>';
+      });
+      html += '</div></div>';
+      html += '</div>';
+    }
+
+    // v2 新增：沉默字段部门排行（条形，难题策略填写率升序）
+    var dff = deptFieldFill().sort(function (a, b) { return (a.ps || 0) - (b.ps || 0); });
+    if (dff.length) {
+      var maxPs = Math.max.apply(null, dff.map(function (d) { return d.ps || 0; }).concat([1]));
+      html += '<div class="ck-sec-t"><span class="bar"></span>沉默字段 · 部门排行（难题策略填写率，升序 = 越差越靠前）</div>';
+      html += '<div class="ck-card"><div class="ck-bars">';
+      dff.forEach(function (d) {
+        var v = d.ps || 0;
+        var c = light(v, TH.comp);
+        var col = c === 'green' ? '#16a34a' : c === 'amber' ? '#d97706' : c === 'red' ? '#dc2626' : '#c3c9d4';
+        var w = Math.round(100 * v / maxPs);
+        html += '<div class="ck-bar-row"><span class="bn">' + esc(d.dept) + '</span>' +
+          '<span class="ck-bar-track"><span class="ck-bar-fill" style="width:' + w + '%;background:' + col + '"></span></span>' +
+          '<span class="bv">' + num(v, 0) + '%</span></div>';
+      });
+      html += '</div>';
+      var dffAi = dff.slice().sort(function (a, b) { return (a.ai || 0) - (b.ai || 0); });
+      html += '<div style="margin-top:10px;font-size:12px;color:var(--rb-muted)">AI 提效填写率（升序）：' +
+        dffAi.map(function (d) { return esc(d.dept) + ' ' + num(d.ai, 0) + '%'; }).join('　·　') + '</div>';
+      html += '</div>';
+    }
+
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
-      '② 红绿灯阈值（出勤≥90/关联≥60/完整≥60/按时≥90/已对齐≥80 为绿，黄为关注，红为预警）为初版，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 周报承诺核销、沉默字段、跨周期错挂均为已定稿/实测值，标注了数据源与截止日；周报表 10 月为空，核销墙暂不能自动刷新。' +
-      '④ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
+      '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
+      '③ 月度环比、个人 TOP 榜、沉默字段部门排行均为 v2 新增派生指标，数据源同上；周报承诺核销、跨周期错挂为已定稿/实测值。' +
+      '④ 周报表 10 月为空，核销墙暂不能自动刷新（门户内部录入通道建设中）。' +
+      '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
     html += '</div>';
     return html;
