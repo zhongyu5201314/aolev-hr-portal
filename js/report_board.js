@@ -311,7 +311,7 @@
   }
 
   function renderTabs() {
-    var tabs = [['daily', '日报'], ['weekly', '周报'], ['monthly', '月报']];
+    var tabs = [['daily', '日报'], ['weekly', '周报'], ['monthly', '月报'], ['loop', '闭环管控']];
     return '<div class="rb-tabs">' + tabs.map(function (t) {
       return '<button class="rb-tab' + (state.tab === t[0] ? ' is-active' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join('') + '</div>';
@@ -371,11 +371,19 @@
   function renderBodyHtml() {
     if (state.tab === 'daily') return renderDailyList();
     if (state.tab === 'weekly') return renderWeeklyList();
+    if (state.tab === 'loop') {
+      // 闭环管控页自带统计口径与筛选，交由 report_loop.js 全权渲染
+      return (global.ReportLoop && global.ReportLoop.renderBody)
+        ? global.ReportLoop.renderBody()
+        : '<div class="rb-empty"><span class="ico">⚠️</span>闭环管控模块未加载（js/report_loop.js 缺失）</div>';
+    }
     return renderMonthly();
   }
 
   function renderMainHtml() {
-    return renderFilter() + renderTabs() + '<div class="rb-body" id="rbBody">' + renderBodyHtml() + '</div>';
+    // 闭环管控页不使用日报/周报的「人员-部门-月份」筛选条（语义不同），故隐藏
+    var filterHtml = (state.tab === 'loop') ? '' : renderFilter();
+    return filterHtml + renderTabs() + '<div class="rb-body" id="rbBody">' + renderBodyHtml() + '</div>';
   }
 
   /* ====================== 弹窗 ====================== */
@@ -505,6 +513,8 @@
     view.__rbBound = '1';
     view.addEventListener('click', onViewClick);
     view.addEventListener('change', onViewChange);
+    // 闭环管控页签的一次性事件委托（自带月份选择器）
+    if (global.ReportLoop && global.ReportLoop.bindOnce) global.ReportLoop.bindOnce();
   }
 
   /* ====================== 入口 ====================== */
