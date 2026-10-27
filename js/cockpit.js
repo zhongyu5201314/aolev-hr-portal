@@ -9,6 +9,7 @@
  * v2（2026-10-26）：① 红绿灯阈值改为达标导向；② 月度环比趋势；③ 个人填报 TOP 榜；④ 沉默字段部门排行（条形）。
  * v3（2026-10-27）：引入 ECharts 真图表（折线/柱状），由 renderBody() 产出容器 + PENDING 配置，
  *       report_board.js 在 HTML 注入 DOM 后调用 mount() 初始化；echarts 缺失时优雅降级。
+ * v3.1（2026-10-27）：月度趋势线末端加环比 ▲▼ 箭头；沉默字段由双系列柱状细拆为 6 字段小图表网格。
  */
 (function () {
   'use strict';
@@ -106,18 +107,28 @@
     return { n: cnt, fill: out };
   }
 
-  /* 沉默字段部门排行（10 月，按难题策略填写率聚合） */
+  /* 沉默字段字段清单（与 fieldFillCompany 对齐） */
+  var FIELDS = [
+    { k: 'key_actions', n: '关键动作' },
+    { k: 'tomorrow_plan', n: '明日计划' },
+    { k: 'daily_work', n: '日常工作' },
+    { k: 'problem_strategy', n: '难题策略' },
+    { k: 'ai_efficiency', n: 'AI提效' },
+    { k: 'emergency', n: '突发工作' }
+  ];
+  /* 沉默字段部门排行（10 月，按各字段填写率聚合） */
   function deptFieldFill() {
     var map = {};
     M.filter(function (r) { return r.month === TARGET_MONTH && r.field_fill; }).forEach(function (r) {
       var d = r.dept && r.dept.trim() ? r.dept : '（未填部门）';
-      if (!map[d]) map[d] = { dept: d, ps: [], ai: [] };
-      var f = r.field_fill;
-      if (f.problem_strategy != null) map[d].ps.push(f.problem_strategy);
-      if (f.ai_efficiency != null) map[d].ai.push(f.ai_efficiency);
+      if (!map[d]) { map[d] = { dept: d }; FIELDS.forEach(function (f) { map[d][f.k] = []; }); }
+      var ff = r.field_fill;
+      FIELDS.forEach(function (f) { if (ff[f.k] != null) map[d][f.k].push(ff[f.k]); });
     });
     return Object.keys(map).map(function (d) {
-      return { dept: d, ps: avg(map[d].ps), ai: avg(map[d].ai) };
+      var o = { dept: d };
+      FIELDS.forEach(function (f) { o[f.k] = avg(map[d][f.k]); });
+      return o;
     });
   }
 
@@ -162,7 +173,9 @@
       '.ck-tag.green{background:#dcfce7;color:#15803d}.ck-tag.amber{background:#fef3c7;color:#b45309}.ck-tag.red{background:#fee2e2;color:#b91c1c}',
       /* v3 新增：ECharts 图表容器 */
       '.ck-chart{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:14px;padding:6px 8px;margin-bottom:6px}',
-      '.ck-chart .ck-cap{font-size:11.5px;color:var(--rb-muted);padding:4px 8px 0}'
+      '.ck-chart .ck-cap{font-size:11.5px;color:var(--rb-muted);padding:4px 8px 0}',
+      /* v3.1 新增：沉默字段小图表网格 */
+      '.ck-minigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:6px}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -186,10 +199,19 @@
   function buildTrendOption(ms) {
     var defs = [['att', '日报填报率', C.accent], ['link', '关联目标率', C.accent2], ['comp', '字段完整率', C.green], ['ontime', '按时率', C.amber]];
     var series = defs.map(function (d) {
+      var data = ms.map(function (m) { var v = monthMetric(m, d[0]); return v == null ? null : Number(v.toFixed(1)); });
+      var last = data.length ? data[data.length - 1] : null;
+      var prev = data.length > 1 ? data[data.length - 2] : null;
+      var arrow = (last == null || prev == null) ? '▬' : (last > prev + 0.05 ? '▲' : (last < prev - 0.05 ? '▼' : '▬'));
+      var arrowColor = arrow === '▲' ? '#16a34a' : arrow === '▼' ? '#dc2626' : '#9ca3af';
       return {
         name: d[1], type: 'line', smooth: true, connectNulls: true, symbolSize: 6,
         itemStyle: { color: d[2] }, lineStyle: { width: 2.5, color: d[2] },
-        data: ms.map(function (m) { var v = monthMetric(m, d[0]); return v == null ? null : Number(v.toFixed(1)); })
+        data: data,
+        endLabel: {
+          show: true, fontSize: 12, fontWeight: 700, color: arrowColor,
+          formatter: function (p) { return (p.value == null ? '—' : p.value + '%') + ' ' + arrow; }
+        }
       };
     });
     return {
@@ -231,23 +253,26 @@
     };
   }
 
-  function buildSilentOption(dff) {
-    var rows = dff.filter(function (r) { return r.ps != null || r.ai != null; })
-      .sort(function (a, b) { return (pnum(a.ps)) - (pnum(b.ps)); }); // 升序：最短（最差）排后，配合 inverse 置顶
+  /* 单字段部门横向柱状（小图表用）：越靠上越差（inverse + 升序） */
+  function buildFieldOption(dff, key, label) {
+    var rows = dff.filter(function (r) { return r[key] != null; })
+      .sort(function (a, b) { return pnum(a[key]) - pnum(b[key]); }); // 升序：最短（最差）排后，配合 inverse 置顶
     var cats = rows.map(function (r) { return r.dept; });
+    var data = rows.map(function (r) {
+      var v = pnum(r[key]);
+      var c = light(v, TH.comp);
+      var col = c === 'green' ? C.green : c === 'amber' ? C.amber : C.red;
+      return { value: v, itemStyle: { color: col, borderRadius: [0, 3, 3, 0] } };
+    });
     return {
       backgroundColor: 'transparent',
-      title: { text: '沉默字段 · 部门排行（难题策略 / AI提效 填写率 %）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      title: { text: label + ' 填写率（%）', left: 8, top: 6, textStyle: { color: C.ink, fontSize: 12.5, fontWeight: 700 } },
       textStyle: { color: C.muted },
       tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink }, valueFormatter: function (v) { return v + '%'; } },
-      legend: { top: 30, left: 14, textStyle: { color: C.muted }, data: ['难题策略', 'AI提效'] },
-      grid: { left: 150, right: 30, top: 60, bottom: 24 },
+      grid: { left: 110, right: 30, top: 34, bottom: 14 },
       xAxis: { type: 'value', max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
-      yAxis: { type: 'category', data: cats, inverse: true, axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
-      series: [
-        { name: '难题策略', type: 'bar', itemStyle: { color: C.red, borderRadius: [0, 4, 4, 0] }, data: rows.map(function (r) { return pnum(r.ps); }) },
-        { name: 'AI提效', type: 'bar', itemStyle: { color: C.accent, borderRadius: [0, 4, 4, 0] }, data: rows.map(function (r) { return pnum(r.ai); }) }
-      ]
+      yAxis: { type: 'category', data: cats, inverse: true, axisLabel: { color: '#cdd0e0', fontSize: 11 }, axisLine: { lineStyle: { color: C.line } } },
+      series: [{ type: 'bar', data: data, barWidth: '62%', label: { show: true, position: 'right', color: C.ink, fontSize: 11, formatter: '{c}%' } }]
     };
   }
 
@@ -422,17 +447,24 @@
       PENDING['ckChartPerson'] = buildPersonOption(monthly10);
     }
 
-    // v3 新增：沉默字段部门排行（双系列柱状，替代原 CSS 条形）
+    // v3.1 新增：沉默字段 · 各字段部门排行（小图表，每字段一张横向柱状）
     var dff = deptFieldFill();
     if (dff.length) {
-      html += '<div class="ck-sec-t"><span class="bar"></span>沉默字段 · 部门排行（可视化，越靠上越差）</div>';
-      html += chartBox('ckChartSilent', Math.max(240, dff.length * 30), '数据来自 MONTHLY.field_fill；难题策略/AI 提效填写率（%），红=难题策略、蓝=AI提效');
-      PENDING['ckChartSilent'] = buildSilentOption(dff);
+      html += '<div class="ck-sec-t"><span class="bar"></span>沉默字段 · 各字段部门排行（可视化，越靠上越差）</div>';
+      var fh = Math.max(160, dff.length * 16 + 50);
+      html += '<div class="ck-minigrid">';
+      FIELDS.forEach(function (f) {
+        var fid = 'ckChartField_' + f.k;
+        html += '<div class="ck-chart"><div id="' + fid + '" style="height:' + fh + 'px"></div></div>';
+        PENDING[fid] = buildFieldOption(dff, f.k, f.n);
+      });
+      html += '</div>';
+      html += '<div class="ck-cap" style="margin-top:4px">数据来自 MONTHLY.field_fill；每张图按该字段填写率升序，最差（红/最短）置顶。多字段整体偏低即"沉默字段"。</div>';
     }
 
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 可视化 v3：月度趋势折线、部门健康度柱状、个人 TOP 柱状、沉默字段双系列柱状，均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
+      '③ 可视化 v3.1：月度趋势折线（末端标注环比 ▲▼ 箭头）、部门健康度柱状、个人 TOP 柱状、沉默字段按 6 个字段拆成小图表（各字段一张横向柱状，最差置顶），均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
       '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
