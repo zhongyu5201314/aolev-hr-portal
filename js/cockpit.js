@@ -298,8 +298,12 @@
   function buildDeptRadarOption(agg, depts) {
     var indicator = [
       { name: '填报', max: 100 }, { name: '关联', max: 100 },
-      { name: '完整', max: 100 }, { name: '按时', max: 100 }
+      { name: '完整', max: 100 },       { name: '按时', max: 100 }
     ];
+    // 全公司均值（四指标公司均值，跨所有部门所有人员；与 KPI/仪表盘口径一致）作对比叠加层
+    var allAtt = [], allLink = [], allComp = [], allOntime = [];
+    depts.forEach(function (dn) { var a = agg[dn]; allAtt = allAtt.concat(a.att); allLink = allLink.concat(a.link); allComp = allComp.concat(a.comp); allOntime = allOntime.concat(a.ontime); });
+    var compMeans = [avg(allAtt), avg(allLink), avg(allComp), avg(allOntime)].map(function (x) { return x == null ? 0 : Number(x.toFixed(1)); });
     var seriesData = depts.map(function (dn) {
       var a = agg[dn];
       var isHome = dn === '人事行政部';
@@ -332,6 +336,15 @@
       areaStyle: { color: 'rgba(156,163,175,.06)' },
       symbol: 'none'
     });
+    // 全公司均值对比叠加层（金色虚线）
+    seriesData.push({
+      name: '全公司均值',
+      value: compMeans,
+      lineStyle: { color: C.amber, width: 2, type: 'dashed' },
+      itemStyle: { color: C.amber },
+      areaStyle: { color: 'rgba(217,119,6,.10)' },
+      symbol: 'circle'
+    });
     return {
       backgroundColor: 'transparent',
       title: { text: '部门健康度雷达（四指标均值 %，区域按红绿灯）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
@@ -341,6 +354,11 @@
         formatter: function (p) {
           if (p.name === '达标基准线') {
             return '达标基准线（红绿灯 v2 good）<br>填报≥' + TH.att.good + '% / 关联≥' + TH.link.good + '%<br>完整≥' + TH.comp.good + '% / 按时≥' + TH.ontime.good + '%';
+          }
+          if (p.name === '全公司均值') {
+            var vv = p.value || [];
+            var ff = function (x) { return x == null ? '—' : Number(x).toFixed(1) + '%'; };
+            return '全公司均值（四指标公司均值）<br>填报 ' + ff(vv[0]) + ' / 关联 ' + ff(vv[1]) + '<br>完整 ' + ff(vv[2]) + ' / 按时 ' + ff(vv[3]);
           }
           var r = p.data && p.data._raw; if (!r) return p.name;
           var f = function (x) { return x == null ? '—' : Number(x.toFixed(1)) + '%'; };
@@ -476,10 +494,13 @@
   var CHARTS = [];   // 已初始化的 echarts 实例（切换页签时统一释放）
   var MONTH_HEALTH = {};   // 各月全局健康度（公司四指标均值），仪表盘历史切换用
   var GAUGE_C = null;      // 仪表盘当前选中月份（null=默认最新月）
+  var RADAR_VIEW = 'all';  // 雷达图视图：all=全部部门 / home=仅看本部对比（本部+全公司均值）
+  var LAST_RADAR = null;   // 雷达图最近一次渲染的 agg/depts（供视图切换重算）
 
   function renderBody() {
     injectStyle();
     PENDING = {};
+    RADAR_VIEW = 'all';
     var ms = monthsSorted();
     var meta = META || {};
     var synced = meta.synced_at || '—';
@@ -530,9 +551,14 @@
 
     // v3.4 变更：部门红绿灯矩阵 → 雷达图（每部门一条系列；本部高亮；跨周期错挂进 tooltip + 下方提示）
     var crossDepts = depts.filter(function (d) { return agg[d].cross > 0; });
+    LAST_RADAR = { agg: agg, depts: depts };
     html += '<div class="ck-sec-t"><span class="bar"></span>部门健康度 · 雷达图（四指标均值 %）</div>';
     if (depts.length) {
-      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；区域填充色按该部门四指标最差项红绿灯（绿=全达标/黄=关注/红=预警）；灰色虚线为达标基准线，多边形落在线内=该指标未达标；「人事行政部」本部高亮（蓝），悬停看四指标明细与跨周期错挂');
+      html += '<div class="ck-mbtns">';
+      html += '<button class="ck-mbtn' + (RADAR_VIEW === 'all' ? ' is-active' : '') + '" data-rv="all">全部部门</button>';
+      html += '<button class="ck-mbtn' + (RADAR_VIEW === 'home' ? ' is-active' : '') + '" data-rv="home">仅看本部对比</button>';
+      html += '</div>';
+      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；区域填充色按该部门四指标最差项红绿灯（绿=全达标/黄=关注/红=预警）；金色虚线=全公司均值、灰色虚线=达标基准线（多边形落在线内=该指标未达标）；「人事行政部」本部高亮（蓝）；点击图例可显隐对应系列');
       PENDING['ckChartRadar'] = buildDeptRadarOption(agg, depts);
     }
     if (crossDepts.length) {
@@ -696,6 +722,8 @@
     }
     // v3.4 仪表盘历史月份切换：绑定按钮点击 → 重设 GAUGE_C → 重绘仪表盘
     bindGaugeButtons();
+    // v3.4 雷达图视图切换：全部部门 / 仅看本部对比（本部 + 全公司均值）
+    bindRadarView();
   }
 
   function bindGaugeButtons() {
@@ -713,6 +741,30 @@
           var inst = echarts.getInstanceByDom(el);
           if (inst) { inst.setOption(opt); }
           else { var n = echarts.init(el); n.setOption(opt); CHARTS.push(n); }
+        }
+      });
+    });
+  }
+
+  function bindRadarView() {
+    var btns = document.querySelectorAll('.ck-mbtn[data-rv]');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-rv');
+        if (!v || v === RADAR_VIEW) return;
+        RADAR_VIEW = v;
+        btns.forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        var el = document.getElementById('ckChartRadar');
+        if (el && typeof echarts !== 'undefined' && LAST_RADAR) {
+          var full = buildDeptRadarOption(LAST_RADAR.agg, LAST_RADAR.depts);
+          var keep = RADAR_VIEW === 'home'
+            ? function (n) { return n.indexOf('人事行政部') === 0 || n === '全公司均值' || n === '达标基准线'; }
+            : function () { return true; };
+          var filtered = full.series[0].data.filter(function (s) { return keep(s.name); });
+          var names = filtered.map(function (s) { return s.name; });
+          var inst = echarts.getInstanceByDom(el);
+          if (inst) inst.setOption({ series: [{ type: 'radar', data: filtered }], legend: { data: names } }, { replaceMerge: ['series', 'legend'] });
         }
       });
     });
