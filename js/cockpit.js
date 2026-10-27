@@ -1,12 +1,14 @@
 /**
  * 日周月报 · 管理驾驶舱（Cockpit）
  * 定位：把「日周月报」模块的日报质量 / 周报进度 / 月报达成 / 闭环预警，
- *       在一屏内以 KPI 卡片 + 部门红绿灯矩阵 + 模块摘要 + 预警熔断条集中呈现。
+ *       在一屏内以 KPI 卡片 + 部门红绿灯矩阵 + 模块摘要 + 预警熔断条集中呈现，
+ *       并以 ECharts 可视化（月度趋势 / 部门健康度 / 沉默字段 / 个人 TOP）。
  * 明细下钻仍由日报/周报/月报/闭环管控四个页签承接。
  * 数据源：window.MONTHLY_REPORTS(人×月聚合) / DAILY_REPORTS / WEEKLY_REPORTS / OGSM_GOALS / REPORT_META
  *       全部为 sync_feishu_reports.py 已物料化数据，本模块只做前端聚合，不拉飞书。
- * v2（2026-10-26）：① 红绿灯阈值改为达标导向，避免全员飘红；② 新增月度环比趋势；
- *       ③ 新增个人填报 TOP 榜（按有效填报天数）；④ 新增沉默字段部门排行（条形）。
+ * v2（2026-10-26）：① 红绿灯阈值改为达标导向；② 月度环比趋势；③ 个人填报 TOP 榜；④ 沉默字段部门排行（条形）。
+ * v3（2026-10-27）：引入 ECharts 真图表（折线/柱状），由 renderBody() 产出容器 + PENDING 配置，
+ *       report_board.js 在 HTML 注入 DOM 后调用 mount() 初始化；echarts 缺失时优雅降级。
  */
 (function () {
   'use strict';
@@ -14,6 +16,7 @@
   function esc(s) { return U && U.escapeHtml ? U.escapeHtml(s) : String(s == null ? '' : s); }
   function num(v, d) { if (v == null || isNaN(v)) return '—'; var n = Number(v); return d != null ? n.toFixed(d) : String(Math.round(n)); }
   function pct(v) { return num(v, 1) + '%'; }
+  function pnum(v) { return v == null ? 0 : Number(v); }
 
   var M = global.MONTHLY_REPORTS || [];
   var D = global.DAILY_REPORTS || [];
@@ -21,6 +24,12 @@
   var O = global.OGSM_GOALS || [];
   var META = global.REPORT_META || {};
   var TARGET_MONTH = '2026年10月';
+
+  /* 暗色图表配色（复用报表页 --rb-* 语义） */
+  var C = {
+    ink: '#e8e8f0', muted: '#aeb0c0', line: 'rgba(255,255,255,.15)', split: 'rgba(255,255,255,.08)',
+    accent: '#4a9eff', accent2: '#8b5cf6', green: '#16a34a', amber: '#d97706', red: '#dc2626'
+  };
 
   /* 红绿灯阈值（百分比口径；completeness 为 0-1，内部 ×100）
    * v2 调整为「达标导向」：压低红线，使正常波动不至于全员飘红，黄区为关注、绿区为达标。 */
@@ -64,12 +73,6 @@
       if (v != null) vals.push(v);
     });
     return avg(vals);
-  }
-  function arrow(cur, prev) {
-    if (cur == null || prev == null) return '<span style="color:#9ca3af">▬</span>';
-    if (cur > prev + 0.05) return '<span style="color:#16a34a">▲</span>';
-    if (cur < prev - 0.05) return '<span style="color:#dc2626">▼</span>';
-    return '<span style="color:#9ca3af">▬</span>';
   }
 
   /* 按部门聚合 10 月 MONTHLY */
@@ -157,24 +160,9 @@
       '.ck-note{font-size:11.5px;color:var(--rb-muted);margin-top:16px;line-height:1.6}',
       '.ck-tag{display:inline-block;padding:1px 7px;border-radius:6px;font-size:11px;font-weight:700;margin-left:6px}',
       '.ck-tag.green{background:#dcfce7;color:#15803d}.ck-tag.amber{background:#fef3c7;color:#b45309}.ck-tag.red{background:#fee2e2;color:#b91c1c}',
-      /* v2 新增：环比 / TOP 榜 / 条形 */
-      '.ck-trend{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:6px}',
-      '.ck-tr{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:12px;padding:12px 14px}',
-      '.ck-tr .nm{font-size:12.5px;color:var(--rb-muted)}',
-      '.ck-tr .cur{font-size:22px;font-weight:800;color:var(--rb-ink);margin:2px 0}',
-      '.ck-tr .prev{font-size:12px;color:var(--rb-muted)}',
-      '.ck-tr .prev b{color:var(--rb-ink)}',
-      '.ck-top{display:flex;flex-direction:column;gap:8px;margin-top:10px}',
-      '.ck-top-item{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:6px 10px;border:1px solid var(--rb-line);border-radius:9px;background:var(--rb-card)}',
-      '.ck-top-item .rn{color:var(--rb-ink);font-weight:600}',
-      '.ck-top-item .rd{font-weight:800;color:var(--rb-accent)}',
-      '.ck-top-item.low .rd{color:#dc2626}',
-      '.ck-bars{display:flex;flex-direction:column;gap:10px;margin-top:4px}',
-      '.ck-bar-row{display:flex;align-items:center;gap:10px;font-size:13px}',
-      '.ck-bar-row .bn{width:130px;color:var(--rb-ink);flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
-      '.ck-bar-track{flex:1;background:var(--rb-line);border-radius:6px;height:16px;position:relative;overflow:hidden}',
-      '.ck-bar-fill{height:100%;border-radius:6px}',
-      '.ck-bar-row .bv{width:46px;text-align:right;font-weight:700;color:var(--rb-ink)}'
+      /* v3 新增：ECharts 图表容器 */
+      '.ck-chart{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:14px;padding:6px 8px;margin-bottom:6px}',
+      '.ck-chart .ck-cap{font-size:11.5px;color:var(--rb-muted);padding:4px 8px 0}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -188,9 +176,103 @@
       '<span class="lv">' + (v == null ? '—' : num(v, 0) + '%') + '</span>' +
       '<span class="nm">' + nm + ' · ' + LABEL[c] + '</span></div>';
   }
+  /* 图表容器：给 id，供 mount() 初始化 */
+  function chartBox(id, h, cap) {
+    return '<div class="ck-chart"><div id="' + id + '" style="height:' + h + 'px"></div>' +
+      (cap ? '<div class="ck-cap">' + esc(cap) + '</div>' : '') + '</div>';
+  }
+
+  /* ============ ECharts 配置构建（纯数据 → option，无 echarts 依赖） ============ */
+  function buildTrendOption(ms) {
+    var defs = [['att', '日报填报率', C.accent], ['link', '关联目标率', C.accent2], ['comp', '字段完整率', C.green], ['ontime', '按时率', C.amber]];
+    var series = defs.map(function (d) {
+      return {
+        name: d[1], type: 'line', smooth: true, connectNulls: true, symbolSize: 6,
+        itemStyle: { color: d[2] }, lineStyle: { width: 2.5, color: d[2] },
+        data: ms.map(function (m) { var v = monthMetric(m, d[0]); return v == null ? null : Number(v.toFixed(1)); })
+      };
+    });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '月度趋势 · 四指标（公司均值 %）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: { trigger: 'axis', backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
+        valueFormatter: function (v) { return v == null ? '—' : v + '%'; } },
+      legend: { top: 30, left: 14, textStyle: { color: C.muted }, data: defs.map(function (d) { return d[1]; }) },
+      grid: { left: 46, right: 20, top: 66, bottom: 34 },
+      xAxis: { type: 'category', data: ms, boundaryGap: false, axisLine: { lineStyle: { color: C.line } }, axisLabel: { color: C.muted } },
+      yAxis: { type: 'value', min: 0, max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
+      series: series
+    };
+  }
+
+  function buildDeptHealthOption(agg, depts) {
+    var rows = depts.map(function (dn) {
+      var a = agg[dn];
+      var vals = [avg(a.att), avg(a.link), avg(a.comp), avg(a.ontime)].filter(function (v) { return v != null; });
+      var score = vals.length ? vals.reduce(function (x, y) { return x + y; }, 0) / vals.length : null;
+      return { dn: dn, score: score };
+    }).filter(function (r) { return r.score != null; }).sort(function (a, b) { return b.score - a.score; });
+    var cats = rows.map(function (r) { return r.dn; });
+    var data = rows.map(function (r) {
+      var c = light(r.score, { good: 80, warn: 65 });
+      var col = c === 'green' ? C.green : c === 'amber' ? C.amber : C.red;
+      return { value: Number(r.score.toFixed(1)), itemStyle: { color: col, borderRadius: [0, 4, 4, 0] } };
+    });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '部门综合健康度（四指标均值 %，绿≥80/黄≥65）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink }, valueFormatter: function (v) { return v + '%'; } },
+      grid: { left: 130, right: 44, top: 44, bottom: 24 },
+      xAxis: { type: 'value', max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
+      yAxis: { type: 'category', data: cats.slice().reverse(), axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
+      series: [{ type: 'bar', data: data.slice().reverse(), barWidth: '58%', label: { show: true, position: 'right', color: C.ink, formatter: '{c}%' } }]
+    };
+  }
+
+  function buildSilentOption(dff) {
+    var rows = dff.filter(function (r) { return r.ps != null || r.ai != null; })
+      .sort(function (a, b) { return (pnum(a.ps)) - (pnum(b.ps)); }); // 升序：最短（最差）排后，配合 inverse 置顶
+    var cats = rows.map(function (r) { return r.dept; });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '沉默字段 · 部门排行（难题策略 / AI提效 填写率 %）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink }, valueFormatter: function (v) { return v + '%'; } },
+      legend: { top: 30, left: 14, textStyle: { color: C.muted }, data: ['难题策略', 'AI提效'] },
+      grid: { left: 150, right: 30, top: 60, bottom: 24 },
+      xAxis: { type: 'value', max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
+      yAxis: { type: 'category', data: cats, inverse: true, axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
+      series: [
+        { name: '难题策略', type: 'bar', itemStyle: { color: C.red, borderRadius: [0, 4, 4, 0] }, data: rows.map(function (r) { return pnum(r.ps); }) },
+        { name: 'AI提效', type: 'bar', itemStyle: { color: C.accent, borderRadius: [0, 4, 4, 0] }, data: rows.map(function (r) { return pnum(r.ai); }) }
+      ]
+    };
+  }
+
+  function buildPersonOption(monthly10) {
+    var rows = monthly10.slice().sort(function (a, b) { return (b.distinct_days || 0) - (a.distinct_days || 0); }).slice(0, 8);
+    var cats = rows.map(function (r) { return (r.reporter_name || '—'); });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '个人本月有效填报天数 TOP 8', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink } },
+      grid: { left: 110, right: 44, top: 44, bottom: 24 },
+      xAxis: { type: 'value', axisLabel: { color: C.muted }, splitLine: { lineStyle: { color: C.split } } },
+      yAxis: { type: 'category', data: cats.slice().reverse(), axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
+      series: [{ type: 'bar', data: rows.map(function (r) { return { value: (r.distinct_days || 0), itemStyle: { color: C.accent2, borderRadius: [0, 4, 4, 0] } }; }).slice().reverse(), barWidth: '56%', label: { show: true, position: 'right', color: C.ink } }]
+    };
+  }
+
+  /* PENDING：renderBody 计算完即写入图表配置，mount() 在 DOM 就绪后初始化 */
+  var PENDING = {};
+  var CHARTS = [];   // 已初始化的 echarts 实例（切换页签时统一释放）
 
   function renderBody() {
     injectStyle();
+    PENDING = {};
     var meta = META || {};
     var synced = meta.synced_at || '—';
     var agg = deptAgg();
@@ -210,7 +292,7 @@
     var html = '<div class="ck-wrap">';
     html += '<div class="ck-h1">日周月报 · 管理驾驶舱</div>';
     html += '<div class="ck-sub">一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警　|　统计月：<b>' + TARGET_MONTH +
-      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）</div>';
+      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）· 可视化 v3（ECharts）</div>';
 
     // KPI 行
     html += '<div class="ck-kpis">';
@@ -242,22 +324,12 @@
     });
     html += '</div>';
 
-    // v2 新增：月度环比趋势
+    // v3 新增：月度趋势折线图（跨所有历史月份）
     var ms = monthsSorted();
-    var two = ms.slice(-2);
-    if (two.length >= 2) {
-      var curM = two[1], prevM = two[0];
-      var metrics = [['att', '日报填报率'], ['link', '关联目标率'], ['comp', '字段完整率'], ['ontime', '按时率']];
-      html += '<div class="ck-sec-t"><span class="bar"></span>月度环比趋势（' + esc(prevM) + ' → ' + esc(curM) + '）</div>';
-      html += '<div class="ck-trend">';
-      metrics.forEach(function (m) {
-        var cur = monthMetric(curM, m[0]);
-        var prev = monthMetric(prevM, m[0]);
-        html += '<div class="ck-tr"><div class="nm">' + m[1] + '</div>' +
-          '<div class="cur">' + (cur != null ? pct(cur) : '—') + ' ' + arrow(cur, prev) + '</div>' +
-          '<div class="prev">上月 <b>' + (prev != null ? pct(prev) : '—') + '</b></div></div>';
-      });
-      html += '</div>';
+    if (ms.length) {
+      html += '<div class="ck-sec-t"><span class="bar"></span>月度趋势 · 可视化（折线）</div>';
+      html += chartBox('ckChartTrend', Math.max(300, 320), '指标口径同红绿灯：填报/关联/完整/按时（公司均值 %）');
+      PENDING['ckChartTrend'] = buildTrendOption(ms);
     }
 
     // 四模块摘要（带下钻）
@@ -336,55 +408,31 @@
       html += '</div>';
     }
 
-    // v2 新增：个人填报 TOP 榜
-    var personRows = monthly10.slice().sort(function (a, b) { return (b.distinct_days || 0) - (a.distinct_days || 0); });
-    if (personRows.length) {
-      var topList = personRows.slice(0, 5);
-      var lowList = personRows.slice(-3).reverse();
-      html += '<div class="ck-sec-t"><span class="bar"></span>个人填报 TOP 榜（按本月有效填报天数）</div>';
-      html += '<div class="ck-grid">';
-      html += '<div class="ck-card"><div class="dn"><span>🏆 填报最活跃 TOP 5</span><span class="cnt">' + topList.length + ' 人</span></div><div class="ck-top">';
-      topList.forEach(function (r, i) {
-        html += '<div class="ck-top-item"><span class="rn">' + (i + 1) + '. ' + esc(r.reporter_name || '—') +
-          ' <span style="color:var(--rb-muted);font-weight:500">' + esc(r.dept || '') + '</span></span><span class="rd">' +
-          (r.distinct_days || 0) + ' 天</span></div>';
-      });
-      html += '</div></div>';
-      html += '<div class="ck-card"><div class="dn"><span>⚠️ 填报偏低 末位 3</span><span class="cnt">需关注</span></div><div class="ck-top">';
-      lowList.forEach(function (r) {
-        html += '<div class="ck-top-item low"><span class="rn">' + esc(r.reporter_name || '—') +
-          ' <span style="color:var(--rb-muted);font-weight:500">' + esc(r.dept || '') + '</span></span><span class="rd">' +
-          (r.distinct_days || 0) + ' 天</span></div>';
-      });
-      html += '</div></div>';
-      html += '</div>';
+    // v3 新增：部门综合健康度柱状图
+    if (depts.length) {
+      html += '<div class="ck-sec-t"><span class="bar"></span>部门综合健康度 · 可视化（柱状）</div>';
+      html += chartBox('ckChartDept', Math.max(240, depts.length * 30), '四指标均值 = (填报+关联+完整+按时)/4，红色<65 / 黄色<80 / 绿色≥80');
+      PENDING['ckChartDept'] = buildDeptHealthOption(agg, depts);
     }
 
-    // v2 新增：沉默字段部门排行（条形，难题策略填写率升序）
-    var dff = deptFieldFill().sort(function (a, b) { return (a.ps || 0) - (b.ps || 0); });
+    // v3 新增：个人填报 TOP 榜柱状图
+    if (monthly10.length) {
+      html += '<div class="ck-sec-t"><span class="bar"></span>个人填报 TOP 榜 · 可视化（柱状）</div>';
+      html += chartBox('ckChartPerson', Math.max(240, 8 * 34), '按本月有效填报天数（distinct_days）取前 8 名');
+      PENDING['ckChartPerson'] = buildPersonOption(monthly10);
+    }
+
+    // v3 新增：沉默字段部门排行（双系列柱状，替代原 CSS 条形）
+    var dff = deptFieldFill();
     if (dff.length) {
-      var maxPs = Math.max.apply(null, dff.map(function (d) { return d.ps || 0; }).concat([1]));
-      html += '<div class="ck-sec-t"><span class="bar"></span>沉默字段 · 部门排行（难题策略填写率，升序 = 越差越靠前）</div>';
-      html += '<div class="ck-card"><div class="ck-bars">';
-      dff.forEach(function (d) {
-        var v = d.ps || 0;
-        var c = light(v, TH.comp);
-        var col = c === 'green' ? '#16a34a' : c === 'amber' ? '#d97706' : c === 'red' ? '#dc2626' : '#c3c9d4';
-        var w = Math.round(100 * v / maxPs);
-        html += '<div class="ck-bar-row"><span class="bn">' + esc(d.dept) + '</span>' +
-          '<span class="ck-bar-track"><span class="ck-bar-fill" style="width:' + w + '%;background:' + col + '"></span></span>' +
-          '<span class="bv">' + num(v, 0) + '%</span></div>';
-      });
-      html += '</div>';
-      var dffAi = dff.slice().sort(function (a, b) { return (a.ai || 0) - (b.ai || 0); });
-      html += '<div style="margin-top:10px;font-size:12px;color:var(--rb-muted)">AI 提效填写率（升序）：' +
-        dffAi.map(function (d) { return esc(d.dept) + ' ' + num(d.ai, 0) + '%'; }).join('　·　') + '</div>';
-      html += '</div>';
+      html += '<div class="ck-sec-t"><span class="bar"></span>沉默字段 · 部门排行（可视化，越靠上越差）</div>';
+      html += chartBox('ckChartSilent', Math.max(240, dff.length * 30), '数据来自 MONTHLY.field_fill；难题策略/AI 提效填写率（%），红=难题策略、蓝=AI提效');
+      PENDING['ckChartSilent'] = buildSilentOption(dff);
     }
 
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 月度环比、个人 TOP 榜、沉默字段部门排行均为 v2 新增派生指标，数据源同上；周报承诺核销、跨周期错挂为已定稿/实测值。' +
+      '③ 可视化 v3：月度趋势折线、部门健康度柱状、个人 TOP 柱状、沉默字段双系列柱状，均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
       '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
@@ -392,5 +440,40 @@
     return html;
   }
 
-  global.ReportCockpit = { renderBody: renderBody };
+  /* 在 DOM 注入完成后由 report_board.js 调用：初始化（或释放重初始化）图表 */
+  function mount() {
+    // 释放旧实例（页签来回切换时旧节点已被 innerHTML 替换，避免泄漏/残留）
+    CHARTS.forEach(function (c) { try { c.dispose(); } catch (e) {} });
+    CHARTS = [];
+
+    var ids = Object.keys(PENDING);
+    if (!ids.length) return;
+
+    if (typeof echarts === 'undefined') {
+      ids.forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.innerHTML = '<div style="padding:24px;color:#8888aa;font-size:13px">图表库未加载（echarts）。请在 app.js 报表页依赖中确认 vendor/echarts.min.js 已引入。</div>';
+      });
+      return;
+    }
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      try {
+        var c = echarts.init(el, null, { renderer: 'canvas' });
+        c.setOption(PENDING[id]);
+        CHARTS.push(c);
+      } catch (e) {
+        el.innerHTML = '<div style="padding:24px;color:#b91c1c;font-size:13px">图表渲染失败：' + (e && e.message ? e.message : e) + '</div>';
+      }
+    });
+    if (!global.__ckResizeBound) {
+      global.__ckResizeBound = true;
+      global.addEventListener('resize', function () {
+        CHARTS.forEach(function (c) { try { c.resize(); } catch (e) {} });
+      });
+    }
+  }
+
+  global.ReportCockpit = { renderBody: renderBody, mount: mount };
 })();

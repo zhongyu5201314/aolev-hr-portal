@@ -391,6 +391,13 @@
     return filterHtml + renderTabs() + '<div class="rb-body" id="rbBody">' + renderBodyHtml() + '</div>';
   }
 
+  /* 驾驶舱挂载钩子：cockpit 页签渲染进 DOM 后，初始化其 ECharts 图表 */
+  function afterRender() {
+    if (state.tab === 'cockpit' && global.ReportCockpit && global.ReportCockpit.mount) {
+      global.ReportCockpit.mount();
+    }
+  }
+
   /* ====================== 弹窗 ====================== */
   function openModal(title, sub, bodyHtml) {
     var mask = document.createElement('div');
@@ -470,6 +477,7 @@
   function resetFilters() {
     state.filters = { person: 'all', dept: 'all', start: '', end: '', weekMonth: 'all' };
     var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
+    afterRender();
   }
 
   function onViewClick(e) {
@@ -480,6 +488,7 @@
     if (tab) {
       state.tab = tab.getAttribute('data-tab');
       var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
+      afterRender();
       return;
     }
     // 1.5) 驾驶舱下钻（data-drill 切换页签，隔离于 tab 样式）
@@ -487,6 +496,7 @@
     if (drill) {
       state.tab = drill.getAttribute('data-drill');
       var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
+      afterRender();
       return;
     }
     // 2) 重置
@@ -553,6 +563,7 @@
       '</div></div>';
 
     bindDelegation();
+    afterRender();
   }
 
   // 全局导出（主名 ReportBoard，别名 Reports 兼容设计稿命名）
