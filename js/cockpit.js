@@ -10,6 +10,8 @@
  * v3（2026-10-27）：引入 ECharts 真图表（折线/柱状），由 renderBody() 产出容器 + PENDING 配置，
  *       report_board.js 在 HTML 注入 DOM 后调用 mount() 初始化；echarts 缺失时优雅降级。
  * v3.1（2026-10-27）：月度趋势线末端加环比 ▲▼ 箭头；沉默字段由双系列柱状细拆为 6 字段小图表网格。
+ * v3.2（2026-10-27）：部门健康度柱状按四指标最差项红绿灯分色（对齐 v2 TH，悬停看四指标明细）；
+ *       个人 TOP 榜柱状补末位 3 人（红色标"需关注"）与 TOP 8 同图对比。
  */
 (function () {
   'use strict';
@@ -231,21 +233,37 @@
   function buildDeptHealthOption(agg, depts) {
     var rows = depts.map(function (dn) {
       var a = agg[dn];
-      var vals = [avg(a.att), avg(a.link), avg(a.comp), avg(a.ontime)].filter(function (v) { return v != null; });
+      var m = { att: avg(a.att), link: avg(a.link), comp: avg(a.comp), ontime: avg(a.ontime) };
+      var vals = [m.att, m.link, m.comp, m.ontime].filter(function (v) { return v != null; });
       var score = vals.length ? vals.reduce(function (x, y) { return x + y; }, 0) / vals.length : null;
-      return { dn: dn, score: score };
+      // 红绿灯分色：取四指标各自 light 的最差项（绿=全达标 / 黄=有关注 / 红=有预警），对齐 v2 阈值 TH
+      var worst = 'green';
+      [['att', TH.att], ['link', TH.link], ['comp', TH.comp], ['ontime', TH.ontime]].forEach(function (p) {
+        var lv = light(m[p[0]], p[1]);
+        if (lv === 'red') worst = 'red';
+        else if (lv === 'amber' && worst !== 'red') worst = 'amber';
+      });
+      return { dn: dn, score: score, m: m, worst: worst };
     }).filter(function (r) { return r.score != null; }).sort(function (a, b) { return b.score - a.score; });
     var cats = rows.map(function (r) { return r.dn; });
     var data = rows.map(function (r) {
-      var c = light(r.score, { good: 80, warn: 65 });
-      var col = c === 'green' ? C.green : c === 'amber' ? C.amber : C.red;
-      return { value: Number(r.score.toFixed(1)), itemStyle: { color: col, borderRadius: [0, 4, 4, 0] } };
+      var col = r.worst === 'green' ? C.green : r.worst === 'amber' ? C.amber : C.red;
+      return { value: Number(r.score.toFixed(1)), itemStyle: { color: col, borderRadius: [0, 4, 4, 0] }, m: r.m };
     });
     return {
       backgroundColor: 'transparent',
-      title: { text: '部门综合健康度（四指标均值 %，绿≥80/黄≥65）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      title: { text: '部门综合健康度（四指标均值 %，按红绿灯分色）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
       textStyle: { color: C.muted },
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink }, valueFormatter: function (v) { return v + '%'; } },
+      tooltip: {
+        trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
+        formatter: function (params) {
+          var p = params[0]; var m = p.data.m;
+          if (!m) return p.name + '：' + p.value + '%';
+          var f = function (v) { return v == null ? '—' : Number(v.toFixed(1)) + '%'; };
+          return p.name + '　综合 ' + p.value + '%<br>填报 ' + f(m.att) + ' / 关联 ' + f(m.link) +
+            '<br>完整 ' + f(m.comp) + ' / 按时 ' + f(m.ontime);
+        }
+      },
       grid: { left: 130, right: 44, top: 44, bottom: 24 },
       xAxis: { type: 'value', max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
       yAxis: { type: 'category', data: cats.slice().reverse(), axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
@@ -277,17 +295,33 @@
   }
 
   function buildPersonOption(monthly10) {
-    var rows = monthly10.slice().sort(function (a, b) { return (b.distinct_days || 0) - (a.distinct_days || 0); }).slice(0, 8);
-    var cats = rows.map(function (r) { return (r.reporter_name || '—'); });
+    var sorted = monthly10.slice().sort(function (a, b) { return (b.distinct_days || 0) - (a.distinct_days || 0); });
+    var top = sorted.slice(0, 8);
+    var topNames = {}; top.forEach(function (r) { topNames[r.reporter_name] = 1; });
+    var bottom = sorted.slice(-3).reverse();                               // 升序：最低在前
+    var bottomOnly = bottom.filter(function (r) { return !topNames[r.reporter_name]; }); // 剔除已进 TOP8 的重叠
+    // 显示顺序（底→顶）：末位3（最低在前）→ TOP8（最高在后，使 TOP1 居顶）
+    var disp = bottomOnly.concat(top);
+    var cats = disp.map(function (r) { return (r.reporter_name || '—'); });
+    var data = disp.map(function (r) {
+      var isBottom = !topNames[r.reporter_name];
+      return { value: (r.distinct_days || 0), isBottom: isBottom, itemStyle: { color: isBottom ? C.red : C.accent2, borderRadius: [0, 4, 4, 0] } };
+    });
     return {
       backgroundColor: 'transparent',
-      title: { text: '个人本月有效填报天数 TOP 8', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      title: { text: '个人本月有效填报天数（TOP 8 + 末位 3）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
       textStyle: { color: C.muted },
-      tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink } },
+      tooltip: {
+        trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
+        formatter: function (params) {
+          var p = params[0];
+          return p.name + '：' + p.value + ' 天' + (p.data.isBottom ? '（末位·需关注）' : '');
+        }
+      },
       grid: { left: 110, right: 44, top: 44, bottom: 24 },
       xAxis: { type: 'value', axisLabel: { color: C.muted }, splitLine: { lineStyle: { color: C.split } } },
-      yAxis: { type: 'category', data: cats.slice().reverse(), axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
-      series: [{ type: 'bar', data: rows.map(function (r) { return { value: (r.distinct_days || 0), itemStyle: { color: C.accent2, borderRadius: [0, 4, 4, 0] } }; }).slice().reverse(), barWidth: '56%', label: { show: true, position: 'right', color: C.ink } }]
+      yAxis: { type: 'category', data: cats, axisLabel: { color: '#cdd0e0' }, axisLine: { lineStyle: { color: C.line } } },
+      series: [{ type: 'bar', data: data, barWidth: '56%', label: { show: true, position: 'right', color: C.ink } }]
     };
   }
 
@@ -436,14 +470,14 @@
     // v3 新增：部门综合健康度柱状图
     if (depts.length) {
       html += '<div class="ck-sec-t"><span class="bar"></span>部门综合健康度 · 可视化（柱状）</div>';
-      html += chartBox('ckChartDept', Math.max(240, depts.length * 30), '四指标均值 = (填报+关联+完整+按时)/4，红色<65 / 黄色<80 / 绿色≥80');
+      html += chartBox('ckChartDept', Math.max(240, depts.length * 30), '颜色按四指标最差项红绿灯判定（绿=全达标/黄=有关注/红=有预警，阈值同 v2 TH）；悬停看四指标明细');
       PENDING['ckChartDept'] = buildDeptHealthOption(agg, depts);
     }
 
     // v3 新增：个人填报 TOP 榜柱状图
     if (monthly10.length) {
       html += '<div class="ck-sec-t"><span class="bar"></span>个人填报 TOP 榜 · 可视化（柱状）</div>';
-      html += chartBox('ckChartPerson', Math.max(240, 8 * 34), '按本月有效填报天数（distinct_days）取前 8 名');
+      html += chartBox('ckChartPerson', Math.max(240, 11 * 34), '红=末位 3 人（需关注）；其余为 TOP 8，按本月有效填报天数');
       PENDING['ckChartPerson'] = buildPersonOption(monthly10);
     }
 
@@ -464,7 +498,7 @@
 
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 可视化 v3.1：月度趋势折线（末端标注环比 ▲▼ 箭头）、部门健康度柱状、个人 TOP 柱状、沉默字段按 6 个字段拆成小图表（各字段一张横向柱状，最差置顶），均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
+      '③ 可视化 v3.2：月度趋势折线（末端标注环比 ▲▼ 箭头）、部门健康度柱状（按四指标最差项红绿灯分色、悬停看明细）、个人 TOP 柱状（红=末位 3 人需关注）、沉默字段按 6 个字段拆成小图表（各字段一张横向柱状，最差置顶），均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
       '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
