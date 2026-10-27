@@ -15,8 +15,9 @@
  * v3.3（2026-10-27）：顶部加全局健康度仪表盘（gauge）；预警"熔断条"改为熔断指标 vs 阈值柱状图（红=已触发），
  *       并保留文字要点兜底（echarts 缺失时仍可见）。
  * v3.4（2026-10-27）：仪表盘支持历史月份切换（顶部按钮组，按各月全局健康度，切换平滑过渡）；部门红绿灯矩阵改为雷达图
- *       （每部门一条系列，四指标 max=100；区域填充色按该部门四指标最差项红绿灯；灰色虚线为达标基准线；
- *       「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示）。
+ *       （每部门一条系列，四指标 max=100；区域填充色按该部门四指标最差项红绿灯；灰色虚线为达标基准线、金色虚线为全公司均值对比叠加层、青色点线为公司目标线（占位待校准）；
+ *       「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示；雷达图另提供「仅看本部对比」按钮，一键隐藏其他部门只看本部 vs 全公司均值；
+ *       部门健康度柱状图同样提供「仅看本部」切换按钮）。
  */
 (function () {
   'use strict';
@@ -56,6 +57,10 @@
     return 'red';
   }
   var LABEL = { green: '达标', amber: '关注', red: '预警', gray: '无数据' };
+
+  /* 雷达图「公司目标线」：管理挑战/目标值（四指标 %）。占位参考值、非实测；
+   * 上线前请 HR 替换为真实考核目标；设为 null 则该线不显示。 */
+  var RADAR_TARGET = { att: 95, link: 65, comp: 75, ontime: 95 };
 
   /* 周报承诺核销 —— 数据源：门户本地 data/weekly_promises.csv（bake_promises.js 烘焙为 window.WEEKLY_PROMISES）。
    * 飞书周报表无核销状态字段、9/10 月为空，故改由门户侧 CSV 维护、可手工刷新。兜底值保留旧定稿。 */
@@ -345,6 +350,17 @@
       areaStyle: { color: 'rgba(217,119,6,.10)' },
       symbol: 'circle'
     });
+    // 公司目标线（管理挑战/目标值，青色点线；占位参考、非实测，待 HR 校准）
+    if (RADAR_TARGET) {
+      seriesData.push({
+        name: '公司目标线',
+        value: [RADAR_TARGET.att, RADAR_TARGET.link, RADAR_TARGET.comp, RADAR_TARGET.ontime].map(function (x) { return x == null ? 0 : Number(x); }),
+        lineStyle: { color: '#06b6d4', width: 2, type: 'dotted' },
+        itemStyle: { color: '#06b6d4' },
+        areaStyle: { color: 'rgba(6,182,212,.06)' },
+        symbol: 'rect'
+      });
+    }
     return {
       backgroundColor: 'transparent',
       title: { text: '部门健康度雷达（四指标均值 %，区域按红绿灯）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
@@ -359,6 +375,11 @@
             var vv = p.value || [];
             var ff = function (x) { return x == null ? '—' : Number(x).toFixed(1) + '%'; };
             return '全公司均值（四指标公司均值）<br>填报 ' + ff(vv[0]) + ' / 关联 ' + ff(vv[1]) + '<br>完整 ' + ff(vv[2]) + ' / 按时 ' + ff(vv[3]);
+          }
+          if (p.name === '公司目标线') {
+            var tv = p.value || [];
+            var tf = function (x) { return x == null ? '—' : Number(x).toFixed(0) + '%'; };
+            return '公司目标线（管理目标值，占位待校准）<br>填报 ' + tf(tv[0]) + ' / 关联 ' + tf(tv[1]) + '<br>完整 ' + tf(tv[2]) + ' / 按时 ' + tf(tv[3]);
           }
           var r = p.data && p.data._raw; if (!r) return p.name;
           var f = function (x) { return x == null ? '—' : Number(x.toFixed(1)) + '%'; };
@@ -496,11 +517,14 @@
   var GAUGE_C = null;      // 仪表盘当前选中月份（null=默认最新月）
   var RADAR_VIEW = 'all';  // 雷达图视图：all=全部部门 / home=仅看本部对比（本部+全公司均值）
   var LAST_RADAR = null;   // 雷达图最近一次渲染的 agg/depts（供视图切换重算）
+  var DEPT_VIEW = 'all';   // 部门健康度柱状图视图：all=全部部门 / home=仅看本部
+  var LAST_DEPT = null;    // 部门柱状图最近一次渲染的 agg/depts（供视图切换重算）
 
   function renderBody() {
     injectStyle();
     PENDING = {};
     RADAR_VIEW = 'all';
+    DEPT_VIEW = 'all';
     var ms = monthsSorted();
     var meta = META || {};
     var synced = meta.synced_at || '—';
@@ -558,7 +582,7 @@
       html += '<button class="ck-mbtn' + (RADAR_VIEW === 'all' ? ' is-active' : '') + '" data-rv="all">全部部门</button>';
       html += '<button class="ck-mbtn' + (RADAR_VIEW === 'home' ? ' is-active' : '') + '" data-rv="home">仅看本部对比</button>';
       html += '</div>';
-      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；区域填充色按该部门四指标最差项红绿灯（绿=全达标/黄=关注/红=预警）；金色虚线=全公司均值、灰色虚线=达标基准线（多边形落在线内=该指标未达标）；「人事行政部」本部高亮（蓝）；点击图例可显隐对应系列');
+      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；区域填充色按该部门四指标最差项红绿灯（绿=全达标/黄=关注/红=预警）；金色虚线=全公司均值、灰色虚线=达标基准线、青色点线=公司目标线（占位待校准）；多边形落在线内=该指标未达标；「人事行政部」本部高亮（蓝）；点击图例可显隐对应系列');
       PENDING['ckChartRadar'] = buildDeptRadarOption(agg, depts);
     }
     if (crossDepts.length) {
@@ -648,10 +672,15 @@
       html += '</div>';
     }
 
-    // v3 新增：部门综合健康度柱状图
+    // v3 新增：部门综合健康度柱状图（v3.4 复用「仅看本部」切换）
+    LAST_DEPT = { agg: agg, depts: depts };
     if (depts.length) {
       html += '<div class="ck-sec-t"><span class="bar"></span>部门综合健康度 · 可视化（柱状）</div>';
-      html += chartBox('ckChartDept', Math.max(240, depts.length * 30), '颜色按四指标最差项红绿灯判定（绿=全达标/黄=有关注/红=有预警，阈值同 v2 TH）；悬停看四指标明细');
+      html += '<div class="ck-mbtns">';
+      html += '<button class="ck-mbtn' + (DEPT_VIEW === 'all' ? ' is-active' : '') + '" data-dv="all">全部部门</button>';
+      html += '<button class="ck-mbtn' + (DEPT_VIEW === 'home' ? ' is-active' : '') + '" data-dv="home">仅看本部</button>';
+      html += '</div>';
+      html += chartBox('ckChartDept', Math.max(240, depts.length * 30), '颜色按四指标最差项红绿灯判定（绿=全达标/黄=有关注/红=有预警，阈值同 v2 TH）；悬停看四指标明细；可点上方「仅看本部」单独看人事行政部');
       PENDING['ckChartDept'] = buildDeptHealthOption(agg, depts);
     }
 
@@ -724,6 +753,8 @@
     bindGaugeButtons();
     // v3.4 雷达图视图切换：全部部门 / 仅看本部对比（本部 + 全公司均值）
     bindRadarView();
+    // v3.4 部门健康度柱状图视图切换：全部部门 / 仅看本部
+    bindDeptView();
   }
 
   function bindGaugeButtons() {
@@ -759,12 +790,34 @@
         if (el && typeof echarts !== 'undefined' && LAST_RADAR) {
           var full = buildDeptRadarOption(LAST_RADAR.agg, LAST_RADAR.depts);
           var keep = RADAR_VIEW === 'home'
-            ? function (n) { return n.indexOf('人事行政部') === 0 || n === '全公司均值' || n === '达标基准线'; }
+            ? function (n) { return n.indexOf('人事行政部') === 0 || n === '全公司均值' || n === '达标基准线' || n === '公司目标线'; }
             : function () { return true; };
           var filtered = full.series[0].data.filter(function (s) { return keep(s.name); });
           var names = filtered.map(function (s) { return s.name; });
           var inst = echarts.getInstanceByDom(el);
           if (inst) inst.setOption({ series: [{ type: 'radar', data: filtered }], legend: { data: names } }, { replaceMerge: ['series', 'legend'] });
+        }
+      });
+    });
+  }
+
+  function bindDeptView() {
+    var btns = document.querySelectorAll('.ck-mbtn[data-dv]');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var v = btn.getAttribute('data-dv');
+        if (!v || v === DEPT_VIEW) return;
+        DEPT_VIEW = v;
+        btns.forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        var el = document.getElementById('ckChartDept');
+        if (el && typeof echarts !== 'undefined' && LAST_DEPT) {
+          var ds = DEPT_VIEW === 'home'
+            ? ['人事行政部'].filter(function (d) { return LAST_DEPT.depts.indexOf(d) >= 0; })
+            : LAST_DEPT.depts;
+          var opt = buildDeptHealthOption(LAST_DEPT.agg, ds);
+          var inst = echarts.getInstanceByDom(el);
+          if (inst) inst.setOption({ yAxis: { data: opt.yAxis.data }, series: opt.series }, { replaceMerge: ['yAxis', 'series'] });
         }
       });
     });
