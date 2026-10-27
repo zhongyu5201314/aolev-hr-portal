@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理驾驶舱可视化升级说明 · v3 → v3.4</title>
+<style>
+  :root{
+    --rb-bg:#0f1220; --rb-card:#171b2e; --rb-line:rgba(255,255,255,.1);
+    --rb-ink:#e8e8f0; --rb-muted:#aeb0c0;
+    --rb-accent:#4a9eff; --rb-accent2:#8b5cf6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,rgba(74,158,255,.12),transparent),var(--rb-bg);
+    color:var(--rb-ink);font-family:-apple-system,"PingFang SC","Microsoft YaHei",Segoe UI,Roboto,sans-serif;
+    line-height:1.7;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:32px 20px 64px}
+  .back{margin-bottom:14px}
+  .back a{color:var(--rb-accent);text-decoration:none;font-size:13.5px}
+  .back a:hover{text-decoration:underline}
+  .hero{border:1px solid var(--rb-line);border-radius:18px;padding:24px 26px;
+    background:linear-gradient(135deg,rgba(74,158,255,.14),rgba(139,92,246,.12));margin-bottom:22px}
+  .hero h1{margin:0 0 6px;font-size:25px;font-weight:800}
+  .hero .sub{color:var(--rb-muted);font-size:13.5px}
+  .tag{display:inline-block;margin-top:10px;padding:3px 10px;border-radius:8px;font-size:12px;font-weight:700;
+    background:#fee2e2;color:#b91c1c}
+  h2{font-size:18px;margin:28px 0 12px;display:flex;align-items:center;gap:9px}
+  h2 .bar{width:5px;height:18px;border-radius:3px;background:linear-gradient(var(--rb-accent),var(--rb-accent2))}
+  p{margin:8px 0;color:#d6d8e6}
+  .muted{color:var(--rb-muted);font-size:13.5px}
+  .card{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:14px;padding:16px 18px;margin:12px 0}
+  table{width:100%;border-collapse:collapse;background:var(--rb-card);border:1px solid var(--rb-line);
+    border-radius:12px;overflow:hidden;font-size:14px}
+  th,td{text-align:left;padding:10px 13px;border-bottom:1px solid var(--rb-line);vertical-align:top}
+  th{background:rgba(74,158,255,.12);font-weight:700}
+  tr:last-child td{border-bottom:none}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+  .gcard{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:13px;padding:14px 16px}
+  .gcard .t{font-weight:700;color:var(--rb-ink);margin-bottom:6px}
+  .gcard .d{font-size:13px;color:var(--rb-muted)}
+  code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:12.5px;color:#cdd6f4}
+  .pill{display:inline-block;padding:1px 8px;border-radius:999px;font-size:11.5px;font-weight:700;margin-right:4px}
+  .pill.g{background:rgba(22,163,74,.18);color:#4ade80}
+  .pill.a{background:rgba(217,119,6,.18);color:#fbbf24}
+  .pill.r{background:rgba(220,38,38,.18);color:#f87171}
+  .pill.b{background:rgba(74,158,255,.18);color:#7cc0ff}
+  .pill.y{background:rgba(6,182,212,.18);color:#67e8f9}
+  ul{margin:8px 0;padding-left:20px}
+  li{margin:5px 0}
+  .note{border-left:3px solid var(--rb-amber);background:rgba(217,119,6,.08);padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0;font-size:13.5px}
+  .foot{margin-top:30px;color:var(--rb-muted);font-size:12.5px;text-align:center}
+  a{color:var(--rb-accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="back"><a href="index.html">← 返回门户首页</a></div>
+
+  <div class="hero">
+    <h1>管理驾驶舱（日周月报）可视化升级说明</h1>
+    <div class="sub">版本 v3 → v3.4　|　HR 门户「日周月报」→「驾驶舱」页签　|　更新时间 2026-10-27</div>
+    <div class="tag">内部资料 · 请勿外传</div>
+  </div>
+
+  <h2><span class="bar"></span>一、背景</h2>
+  <p>驾驶舱此前为纯卡片 / 圆点 / CSS 条形，<b>无图表</b>。本期升级为 <b>ECharts 真图表驾驶舱</b>：一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警，并补齐红绿灯语义、历史月份切换、对标线与"仅看本部"等交互。</p>
+
+  <h2><span class="bar"></span>二、版本变更清单</h2>
+  <table>
+    <tr><th>版本</th><th>主要变更</th></tr>
+    <tr><td><b>v3</b></td><td>接入 ECharts（折线/柱状）。4 张主图：月度趋势折线、部门健康度柱状、个人 TOP 柱状、沉默字段双系列柱状。</td></tr>
+    <tr><td><b>v3.1</b></td><td>趋势线末端加<b>环比 ▲▼ 箭头</b>；沉默字段由 2 张拆为 <b>6 张小图表</b>（按字段部门排行）。</td></tr>
+    <tr><td><b>v3.2</b></td><td>部门柱状按<b>四指标最差项红绿灯分色</b>（<span class="pill g">绿=全达标</span><span class="pill a">黄=关注</span><span class="pill r">红=预警</span>）+ 悬停看四指标明细；个人 TOP 补<b>末位 3 人（红色"需关注"）</b>。</td></tr>
+    <tr><td><b>v3.3</b></td><td>顶部加<b>全局健康度仪表盘（gauge）</b>；预警"熔断条"改成<b>熔断指标 vs 阈值柱状图（红=已触发）</b>。</td></tr>
+    <tr><td><b>v3.4</b></td><td>仪表盘<b>历史月份一键切换</b>（指针平滑过渡）；部门红绿灯矩阵→<b>雷达图</b>（区域按红绿灯着色 + 灰色虚线达标基准线 + 金色虚线全公司均值 + 青色点线公司目标线 + 「仅看本部对比」按钮）；部门柱状图加<b>「仅看本部」+ 历史月份联动</b>。</td></tr>
+  </table>
+  <p class="muted">图表总数：<b>12 张</b>（仪表盘 + 趋势 + 雷达 + 部门柱状 + 个人TOP + 预警熔断 + 6 张沉默字段小图）。</p>
+
+  <h2><span class="bar"></span>三、交互速览（给使用者）</h2>
+  <div class="grid">
+    <div class="gcard">
+      <div class="t">顶部仪表盘</div>
+      <div class="d">点月份按钮切换历史月，指针平滑过渡；数值 = 该月四指标公司均值。</div>
+    </div>
+    <div class="gcard">
+      <div class="t">部门健康度雷达图</div>
+      <div class="d">区域填充色 = 该部门红绿灯状态（<span class="pill g">绿</span><span class="pill a">黄</span><span class="pill r">红</span>）；三条参考线：<span class="pill b">灰虚线=达标基准线</span>（落在线内=未达标）、<span class="pill y">金虚线=全公司均值</span>、<span class="pill y" style="background:rgba(6,182,212,.18);color:#67e8f9">青点线=公司目标线（占位待校准）</span>；点图例可显隐任意系列；点「仅看本部对比」只看人事行政部 vs 全公司 vs 目标。</div>
+    </div>
+    <div class="gcard">
+      <div class="t">部门健康度柱状图</div>
+      <div class="d">月份按钮（与仪表盘同源历史月）+「仅看本部」按钮可<b>叠加</b>（如"切到 8 月 + 仅看本部"）。</div>
+    </div>
+    <div class="gcard">
+      <div class="t">个人 TOP / 预警熔断 / 沉默字段</div>
+      <div class="d">交互同前，悬停看明细；个人 TOP 红标 = 末位 3 人需关注。</div>
+    </div>
+  </div>
+
+  <h2><span class="bar"></span>四、数据口径与说明</h2>
+  <ul>
+    <li>所有图表与四个明细页签<b>共用同源数据</b>（飞书日报 / 周报 / 月报 + OGSM 目标），仅做前端聚合，<b>不拉飞书</b>。</li>
+    <li><b>红绿灯阈值 v2（达标导向）</b>写在 <code>cockpit.js</code> 顶部 <code>TH</code>，可按管理偏好调整：出勤≥85 / 关联≥50 / 完整≥60 / 按时≥90 / 已对齐≥70 为绿，黄为关注，红为预警。</li>
+    <li>"日报填报率"为<b>日报填报口径</b>（截至数据日应出勤天数的填报覆盖），<b>非 HR 真实出勤</b>。</li>
+    <li>周报承诺核销墙已改由门户 <code>data/weekly_promises.csv</code> 维护、可手工刷新（编辑 CSV → <code>node bake_promises.js</code> → 部署）。</li>
+    <li>个人绩效分与 ⚠️ 低可信评价按门户脱敏策略<b>不在公网展开</b>，仅本地可见。</li>
+  </ul>
+
+  <div class="note">
+    <b>内部待办：</b>① <b>公司目标线为占位参考值</b>（<code>RADAR_TARGET = {出勤95/关联65/完整75/按时95}</code>），图内已标"占位待校准、非实测"，待 HR 提供四个指标真实目标值后替换（置 <code>null</code> 则该线不显示）。② <b>GitHub PAT 轮换</b>（部署用 token 多次出现，建议尽快在 GitHub 设置中轮换/撤销）。③ 雷达图固定展示统计月，仅部门柱状图支持历史月切换（设计取舍，保持与 KPI 一致）。
+  </div>
+
+  <h2><span class="bar"></span>五、查看方式</h2>
+  <p>公网：<a href="https://zhongyu5201314.github.io/aolev-hr-portal/" target="_blank">https://zhongyu5201314.github.io/aolev-hr-portal/</a> →「日周月报」→「驾驶舱」。因 CDN 缓存，首次查看请 <b>Ctrl+Shift+R 硬刷新</b>。</p>
+
+  <div class="foot">本文档由 HR 数字化团队整理，对应门户代码 <code>dist/js/cockpit.js</code> v3.4（2026-10-27 部署）。</div>
+</div>
+</body>
+</html>

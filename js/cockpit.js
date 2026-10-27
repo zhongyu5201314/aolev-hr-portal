@@ -165,6 +165,8 @@
       '.ck-wrap{max-width:1180px;margin:0 auto;padding:8px 4px}',
       '.ck-h1{font-size:22px;font-weight:800;color:var(--rb-ink);margin:6px 0 2px}',
       '.ck-sub{color:var(--rb-muted);font-size:13px;margin-bottom:14px}',
+      '.ck-help{display:inline-block;margin:0 0 12px;font-size:13px;font-weight:600;color:var(--rb-accent);text-decoration:none}',
+      '.ck-help:hover{text-decoration:underline}',
       '.ck-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:12px;margin-bottom:18px}',
       '.ck-kpi{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:14px;padding:14px 16px;box-shadow:0 2px 8px rgba(20,30,50,.04)}',
       '.ck-kpi .v{font-size:26px;font-weight:800;color:var(--rb-ink);line-height:1.1}',
@@ -550,6 +552,7 @@
     html += '<div class="ck-h1">日周月报 · 管理驾驶舱</div>';
     html += '<div class="ck-sub">一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警　|　统计月：<b>' + TARGET_MONTH +
       '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）· 可视化 v3.4（ECharts）</div>';
+    html += '<a class="ck-help" href="cockpit-help-v34.html" target="_blank" rel="noopener">📖 查看 v3.4 可视化升级说明 →</a>';
 
     // v3.4 新增：仪表盘 + 历史月份切换
     MONTH_HEALTH = monthHealthAll();
