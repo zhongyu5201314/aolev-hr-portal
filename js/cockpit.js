@@ -12,6 +12,8 @@
  * v3.1（2026-10-27）：月度趋势线末端加环比 ▲▼ 箭头；沉默字段由双系列柱状细拆为 6 字段小图表网格。
  * v3.2（2026-10-27）：部门健康度柱状按四指标最差项红绿灯分色（对齐 v2 TH，悬停看四指标明细）；
  *       个人 TOP 榜柱状补末位 3 人（红色标"需关注"）与 TOP 8 同图对比。
+ * v3.3（2026-10-27）：顶部加全局健康度仪表盘（gauge）；预警"熔断条"改为熔断指标 vs 阈值柱状图（红=已触发），
+ *       并保留文字要点兜底（echarts 缺失时仍可见）。
  */
 (function () {
   'use strict';
@@ -325,6 +327,60 @@
     };
   }
 
+  /* 全局健康度仪表盘（gauge）：score=四指标公司均值，颜色同红绿灯 */
+  function buildGaugeOption(score) {
+    var lv = light(score, { good: 80, warn: 65 });
+    var c = lv === 'green' ? C.green : lv === 'amber' ? C.amber : C.red;
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '全局健康度（四指标公司均值）', left: 'center', top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      series: [{
+        type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '84%', center: ['50%', '58%'],
+        progress: { show: true, width: 16, itemStyle: { color: c } },
+        axisLine: { lineStyle: { width: 16, color: [[0.65, '#dc2626'], [0.8, '#d97706'], [1, '#16a34a']] } },
+        pointer: { show: true, length: '58%', width: 4, itemStyle: { color: c } },
+        anchor: { show: true, size: 8, itemStyle: { color: c } },
+        axisTick: { show: false },
+        splitLine: { length: 10, lineStyle: { color: '#5a5a72', width: 1 } },
+        axisLabel: { color: '#aeb0c0', fontSize: 10, distance: 14 },
+        title: { show: false },
+        detail: { valueAnimation: true, formatter: function (v) { return Math.round(v) + ' 分'; }, color: C.ink, fontSize: 28, fontWeight: 800, offsetCenter: [0, '38%'] },
+        data: [{ value: Math.round(score) }]
+      }]
+    };
+  }
+
+  /* 预警熔断指标柱状：红=已触发（低于达标线）；higher=false 时越低越好 */
+  function buildAlertOption(items) {
+    var cats = items.map(function (i) { return i.name; });
+    var data = items.map(function (i) {
+      var lv = i.higher
+        ? light(i.value, { good: i.good, warn: i.warn })
+        : (i.value <= i.good ? 'green' : (i.value <= i.warn ? 'amber' : 'red'));
+      var col = lv === 'green' ? C.green : lv === 'amber' ? C.amber : C.red;
+      return { value: Math.round(i.value), itemStyle: { color: col, borderRadius: [0, 4, 4, 0] }, _info: i };
+    });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '预警 · 熔断指标 vs 阈值（红=已触发）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: {
+        trigger: 'axis', axisPointer: { type: 'shadow' }, backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
+        formatter: function (params) {
+          var p = params[0]; var i = p.data._info;
+          if (!i) return p.name + '：' + p.value + '%';
+          return p.name + '　' + p.value + '%' + '<br>阈值：绿≥' + i.good + '% / 黄≥' + i.warn + '%' +
+            (i.higher ? '' : '（越低越好）') + '<br>' + (i.detail || '');
+        }
+      },
+      grid: { left: 120, right: 36, top: 44, bottom: 18 },
+      xAxis: { type: 'value', max: 100, axisLabel: { color: C.muted, formatter: '{value}%' }, splitLine: { lineStyle: { color: C.split } } },
+      yAxis: { type: 'category', data: cats.slice().reverse(), axisLabel: { color: '#cdd0e0', fontSize: 11 }, axisLine: { lineStyle: { color: C.line } } },
+      series: [{ type: 'bar', data: data.slice().reverse(), barWidth: '55%', label: { show: true, position: 'right', color: C.ink, formatter: '{c}%' } }]
+    };
+  }
+
   /* PENDING：renderBody 计算完即写入图表配置，mount() 在 DOM 就绪后初始化 */
   var PENDING = {};
   var CHARTS = [];   // 已初始化的 echarts 实例（切换页签时统一释放）
@@ -343,6 +399,8 @@
     var attAvg = avg(depts.map(function (d) { return agg[d].att; }).reduce(function (x, y) { return x.concat(y); }, []));
     var linkAvg = avg(depts.map(function (d) { return agg[d].link; }).reduce(function (x, y) { return x.concat(y); }, []));
     var compAvg = avg(depts.map(function (d) { return agg[d].comp; }).reduce(function (x, y) { return x.concat(y); }, []));
+    var ontimeAvg = avg(depts.map(function (d) { return agg[d].ontime; }).reduce(function (x, y) { return x.concat(y); }, []));
+    var globalHealth = avg([attAvg, linkAvg, compAvg, ontimeAvg].filter(function (v) { return v != null; }));
     var daily10 = D.filter(function (r) { return r.month === TARGET_MONTH; });
     var fill = fieldFillCompany();
     var verifyRate = PROMISES.total ? Math.round(100 * (PROMISES.full + PROMISES.partial) / PROMISES.total) : null;
@@ -352,6 +410,11 @@
     html += '<div class="ck-h1">日周月报 · 管理驾驶舱</div>';
     html += '<div class="ck-sub">一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警　|　统计月：<b>' + TARGET_MONTH +
       '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）· 可视化 v3（ECharts）</div>';
+
+    // v3.3 新增：全局健康度仪表盘（顶部）
+    html += '<div class="ck-sec-t"><span class="bar"></span>全局健康度（仪表盘）</div>';
+    html += chartBox('ckGauge', 230, '全局 = 四指标公司均值（填报/关联/完整/按时）；颜色同红绿灯（绿≥80/黄≥65/红<65）');
+    PENDING['ckGauge'] = buildGaugeOption(globalHealth == null ? 0 : globalHealth);
 
     // KPI 行
     html += '<div class="ck-kpis">';
@@ -428,22 +491,20 @@
       '<button class="ck-drill" data-drill="loop">查看闭环管控 →</button></div>';
     html += '</div>';
 
-    // 预警熔断条
-    html += '<div class="ck-sec-t"><span class="bar"></span>预警 · 熔断条</div>';
-    html += '<div class="ck-alerts">';
-    html += '<div class="ck-alert red"><span class="ico">🚨</span><div><b>沉默字段熔断</b><br>难题与策略填写率仅 <b>' +
-      (silentPS != null ? num(silentPS, 0) : '—') + '%</b>、AI 提效填写率仅 <b>' +
-      (silentAI != null ? num(silentAI, 0) : '—') + '%</b>。三反思字段近乎全空，部门字段完整率被系统性压低。</div></div>';
-    html += '<div class="ck-alert amber"><span class="ico">⚠️</span><div><b>跨周期错挂</b><br>全公司 10 月日报中，' +
-      crossTotal + ' 条「日报月份 ≠ OGSM 考核周期」。目标归属口径错乱，关联目标率统计失真。</div></div>';
-    var nbMap = {}; PROMISES.breakdown.forEach(function (x) { nbMap[x[0]] = x[1]; });
-    var nDisappear = nbMap['消失（无下文）'] || 0, nDefer = nbMap['顺延'] || 0,
-        nDown = nbMap['降级'] || 0, nFail = nbMap['明确失败'] || 0;
-    html += '<div class="ck-alert amber"><span class="ico">⚠️</span><div><b>承诺未核销</b><br>' + PROMISES.total + ' 条周报「下一步」中，' +
-      PROMISES.none + ' 条（' + Math.round(100 * PROMISES.none / PROMISES.total) +
-      '%）无下文：消失 ' + nDisappear + ' / 顺延 ' + nDefer +
-      ' / 降级 ' + nDown + ' / 明确失败 ' + nFail + '。</div></div>';
-    html += '</div>';
+    // v3.3 新增：预警熔断做成图（熔断指标 vs 阈值，红=已触发）
+    var crossRate = daily10.length ? Math.round(100 * crossTotal / daily10.length) : 0;
+    var alertData = [
+      { name: '难题策略填写率', value: silentPS == null ? 0 : silentPS, good: 60, warn: 40, higher: true, detail: '三反思字段近乎全空，系统性压低字段完整率' },
+      { name: 'AI提效填写率', value: silentAI == null ? 0 : silentAI, good: 60, warn: 40, higher: true, detail: 'AI 提效字段填写严重不足' },
+      { name: '关联目标率', value: linkAvg == null ? 0 : linkAvg, good: 50, warn: 30, higher: true, detail: '目标归属口径错乱，关联目标率统计失真' },
+      { name: '承诺核销率', value: verifyRate == null ? 0 : verifyRate, good: 80, warn: 60, higher: true, detail: PROMISES.none + ' 条周报「下一步」无下文（消失/顺延/降级/失败）' },
+      { name: '跨周期错挂占比', value: crossRate, good: 2, warn: 5, higher: false, detail: crossTotal + ' 条日报月份 ≠ OGSM 考核周期' }
+    ];
+    html += '<div class="ck-sec-t"><span class="bar"></span>预警 · 熔断指标（可视化）</div>';
+    html += chartBox('ckChartAlert', Math.max(220, alertData.length * 30), '红=该项已触发熔断（低于达标线）；悬停看阈值与明细');
+    PENDING['ckChartAlert'] = buildAlertOption(alertData);
+    html += '<div class="ck-cap" style="margin-top:4px">熔断要点：① 三反思字段（难题/AI）近乎全空，字段完整率被系统性压低；② 全公司 ' +
+      crossTotal + ' 条日报月份≠考核周期，关联目标率失真；③ ' + PROMISES.none + ' 条周报「下一步」无下文。</div>';
 
     // OGSM 目标健康度（各部门目标数 + 已对齐率）
     var ogByDept = {};
@@ -498,7 +559,7 @@
 
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 可视化 v3.2：月度趋势折线（末端标注环比 ▲▼ 箭头）、部门健康度柱状（按四指标最差项红绿灯分色、悬停看明细）、个人 TOP 柱状（红=末位 3 人需关注）、沉默字段按 6 个字段拆成小图表（各字段一张横向柱状，最差置顶），均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
+      '③ 可视化 v3.3：顶部全局健康度仪表盘(gauge) + 月度趋势折线（末端标注环比 ▲▼ 箭头）+ 部门健康度柱状（按四指标最差项红绿灯分色、悬停看明细）+ 个人 TOP 柱状（红=末位 3 人需关注）+ 预警熔断指标柱状（红=已触发）+ 沉默字段 6 字段小图表，均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
       '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
