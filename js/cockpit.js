@@ -19,7 +19,7 @@
  *       「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示；雷达图另提供「仅看本部对比」按钮，一键隐藏其他部门只看本部 vs 全公司均值；
  *       部门健康度柱状图同样提供「仅看本部」切换按钮，并加历史月份按钮（与仪表盘同源）实现历史月份联动）。
  */
-(function () {
+(function (global) {
   'use strict';
   var U = global.U;
   function esc(s) { return U && U.escapeHtml ? U.escapeHtml(s) : String(s == null ? '' : s); }
@@ -849,4 +849,4 @@
   }
 
   global.ReportCockpit = { renderBody: renderBody, mount: mount };
-})();
+})(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
