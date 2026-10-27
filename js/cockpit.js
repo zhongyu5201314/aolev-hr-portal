@@ -14,6 +14,8 @@
  *       个人 TOP 榜柱状补末位 3 人（红色标"需关注"）与 TOP 8 同图对比。
  * v3.3（2026-10-27）：顶部加全局健康度仪表盘（gauge）；预警"熔断条"改为熔断指标 vs 阈值柱状图（红=已触发），
  *       并保留文字要点兜底（echarts 缺失时仍可见）。
+ * v3.4（2026-10-27）：仪表盘支持历史月份切换（顶部按钮组，按各月全局健康度）；部门红绿灯矩阵改为雷达图
+ *       （每部门一条系列，四指标 max=100；「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示）。
  */
 (function () {
   'use strict';
@@ -61,10 +63,14 @@
 
   function avg(arr) { return arr.length ? arr.reduce(function (x, y) { return x + y; }, 0) / arr.length : null; }
 
-  /* 月份有序列表（按字符串排即可，形如 2026年8月） */
+  /* 月份有序列表（按年+月数值排序，避免 "10月" 排在 "8月" 之前的字符串排序问题） */
+  function monthKey(m) {
+    var mm = m && m.match(/(\d{4})年(\d{1,2})月/);
+    return mm ? (parseInt(mm[1], 10) * 12 + parseInt(mm[2], 10)) : 0;
+  }
   function monthsSorted() {
     var ms = {}; M.forEach(function (r) { if (r.month) ms[r.month] = 1; });
-    return Object.keys(ms).sort();
+    return Object.keys(ms).sort(function (a, b) { return monthKey(a) - monthKey(b); });
   }
   /* 某月某指标（公司均值） */
   function monthMetric(month, metric) {
@@ -78,6 +84,15 @@
       if (v != null) vals.push(v);
     });
     return avg(vals);
+  }
+  /* 各月全局健康度（公司四指标均值），供仪表盘历史切换 */
+  function monthHealthAll() {
+    var map = {};
+    monthsSorted().forEach(function (m) {
+      var v = avg([monthMetric(m, 'att'), monthMetric(m, 'link'), monthMetric(m, 'comp'), monthMetric(m, 'ontime')].filter(function (x) { return x != null; }));
+      map[m] = v == null ? 0 : v;
+    });
+    return map;
   }
 
   /* 按部门聚合 10 月 MONTHLY */
@@ -179,7 +194,12 @@
       '.ck-chart{background:var(--rb-card);border:1px solid var(--rb-line);border-radius:14px;padding:6px 8px;margin-bottom:6px}',
       '.ck-chart .ck-cap{font-size:11.5px;color:var(--rb-muted);padding:4px 8px 0}',
       /* v3.1 新增：沉默字段小图表网格 */
-      '.ck-minigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:6px}'
+      '.ck-minigrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;margin-bottom:6px}',
+      /* v3.4 新增：仪表盘月份切换按钮 */
+      '.ck-mbtns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:6px 0 2px}',
+      '.ck-mbtn{padding:4px 12px;border-radius:8px;border:1px solid var(--rb-line);background:var(--rb-card);color:var(--rb-muted);font-size:12px;font-weight:600;cursor:pointer}',
+      '.ck-mbtn:hover{color:var(--rb-ink)}',
+      '.ck-mbtn.is-active{color:#fff;background:linear-gradient(135deg,var(--rb-accent),var(--rb-accent2));border-color:transparent}'
     ].join('');
     document.head.appendChild(s);
   }
@@ -273,6 +293,50 @@
     };
   }
 
+  /* v3.4 新增：部门健康度雷达图 —— 每部门一条系列，四指标 max=100；本部高亮；tooltip 出四指标 + 跨周期错挂 */
+  function buildDeptRadarOption(agg, depts) {
+    var indicator = [
+      { name: '填报', max: 100 }, { name: '关联', max: 100 },
+      { name: '完整', max: 100 }, { name: '按时', max: 100 }
+    ];
+    var seriesData = depts.map(function (dn) {
+      var a = agg[dn];
+      var isHome = dn === '人事行政部';
+      return {
+        name: dn + (isHome ? '（本部）' : ''),
+        value: [avg(a.att), avg(a.link), avg(a.comp), avg(a.ontime)].map(function (x) { return x == null ? 0 : Number(x.toFixed(1)); }),
+        _raw: { att: avg(a.att), link: avg(a.link), comp: avg(a.comp), ontime: avg(a.ontime), cross: a.cross, n: a.n },
+        lineStyle: { color: isHome ? C.accent : 'rgba(139,92,246,.55)', width: isHome ? 3 : 1.5 },
+        areaStyle: { color: isHome ? 'rgba(74,158,255,.28)' : 'rgba(139,92,246,.06)' },
+        itemStyle: { color: isHome ? C.accent : C.muted }
+      };
+    });
+    return {
+      backgroundColor: 'transparent',
+      title: { text: '部门健康度雷达（四指标均值 %）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      textStyle: { color: C.muted },
+      tooltip: {
+        backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
+        formatter: function (p) {
+          var r = p.data && p.data._raw; if (!r) return p.name;
+          var f = function (x) { return x == null ? '—' : Number(x.toFixed(1)) + '%'; };
+          return p.name + '（' + r.n + ' 人）<br>填报 ' + f(r.att) + ' / 关联 ' + f(r.link) +
+            '<br>完整 ' + f(r.comp) + ' / 按时 ' + f(r.ontime) +
+            (r.cross > 0 ? ('<br>⚠️ 跨周期错挂 ' + r.cross + ' 条') : '');
+        }
+      },
+      legend: { type: 'scroll', bottom: 0, left: 'center', width: '90%', textStyle: { color: C.muted, fontSize: 11 }, data: seriesData.map(function (s) { return s.name; }) },
+      radar: {
+        indicator: indicator, center: ['50%', '50%'], radius: '62%',
+        axisName: { color: C.ink, fontSize: 12 },
+        splitLine: { lineStyle: { color: C.split } },
+        splitArea: { areaStyle: { color: ['rgba(255,255,255,.02)', 'rgba(255,255,255,.05)'] } },
+        axisLine: { lineStyle: { color: C.line } }
+      },
+      series: [{ type: 'radar', data: seriesData }]
+    };
+  }
+
   /* 单字段部门横向柱状（小图表用）：越靠上越差（inverse + 升序） */
   function buildFieldOption(dff, key, label) {
     var rows = dff.filter(function (r) { return r[key] != null; })
@@ -328,12 +392,13 @@
   }
 
   /* 全局健康度仪表盘（gauge）：score=四指标公司均值，颜色同红绿灯 */
-  function buildGaugeOption(score) {
+  function buildGaugeOption(score, label) {
     var lv = light(score, { good: 80, warn: 65 });
     var c = lv === 'green' ? C.green : lv === 'amber' ? C.amber : C.red;
+    var gTitle = label ? '全局健康度 · ' + label : '全局健康度（四指标公司均值）';
     return {
       backgroundColor: 'transparent',
-      title: { text: '全局健康度（四指标公司均值）', left: 'center', top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      title: { text: gTitle, left: 'center', top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
       textStyle: { color: C.muted },
       series: [{
         type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '84%', center: ['50%', '58%'],
@@ -384,10 +449,13 @@
   /* PENDING：renderBody 计算完即写入图表配置，mount() 在 DOM 就绪后初始化 */
   var PENDING = {};
   var CHARTS = [];   // 已初始化的 echarts 实例（切换页签时统一释放）
+  var MONTH_HEALTH = {};   // 各月全局健康度（公司四指标均值），仪表盘历史切换用
+  var GAUGE_C = null;      // 仪表盘当前选中月份（null=默认最新月）
 
   function renderBody() {
     injectStyle();
     PENDING = {};
+    var ms = monthsSorted();
     var meta = META || {};
     var synced = meta.synced_at || '—';
     var agg = deptAgg();
@@ -409,12 +477,21 @@
     var html = '<div class="ck-wrap">';
     html += '<div class="ck-h1">日周月报 · 管理驾驶舱</div>';
     html += '<div class="ck-sub">一屏总览日报质量 / 周报进度 / 月报达成 / 闭环预警　|　统计月：<b>' + TARGET_MONTH +
-      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）· 可视化 v3（ECharts）</div>';
+      '</b>　|　数据更新：<b>' + esc(synced) + '</b>　|　红绿灯阈值 v2（达标导向）· 可视化 v3.4（ECharts）</div>';
 
-    // v3.3 新增：全局健康度仪表盘（顶部）
+    // v3.4 新增：仪表盘 + 历史月份切换
+    MONTH_HEALTH = monthHealthAll();
+    if (!GAUGE_C || !MONTH_HEALTH[GAUGE_C]) GAUGE_C = ms.length ? ms[ms.length - 1] : null;
     html += '<div class="ck-sec-t"><span class="bar"></span>全局健康度（仪表盘）</div>';
-    html += chartBox('ckGauge', 230, '全局 = 四指标公司均值（填报/关联/完整/按时）；颜色同红绿灯（绿≥80/黄≥65/红<65）');
-    PENDING['ckGauge'] = buildGaugeOption(globalHealth == null ? 0 : globalHealth);
+    if (ms.length) {
+      html += '<div class="ck-mbtns">';
+      ms.forEach(function (m) {
+        html += '<button class="ck-mbtn' + (m === GAUGE_C ? ' is-active' : '') + '" data-gm="' + m + '">' + esc(m) + '</button>';
+      });
+      html += '</div>';
+    }
+    html += chartBox('ckGauge', 230, '全局 = 四指标公司均值（填报/关联/完整/按时）；颜色同红绿灯（绿≥80/黄≥65/红<65）；点击上方月份切换历史');
+    PENDING['ckGauge'] = buildGaugeOption(MONTH_HEALTH[GAUGE_C] == null ? 0 : MONTH_HEALTH[GAUGE_C], GAUGE_C);
 
     // KPI 行
     html += '<div class="ck-kpis">';
@@ -426,28 +503,20 @@
     html += kpiCard(daily10.length + '<span style="font-size:14px;color:var(--rb-muted)"> 条</span>', '本月日报总量');
     html += '</div>';
 
-    // 部门健康度红绿灯矩阵
-    html += '<div class="ck-sec-t"><span class="bar"></span>部门健康度 · 红绿灯矩阵</div>';
-    html += '<div class="ck-grid">';
-    depts.forEach(function (dn) {
-      var a = agg[dn];
-      var att = avg(a.att), link = avg(a.link), comp = avg(a.comp), ontime = avg(a.ontime);
-      var hi = (dn === '人事行政部') ? ' style="border-color:var(--rb-accent);box-shadow:0 0 0 2px rgba(74,158,255,.12)"' : '';
-      html += '<div class="ck-card"' + hi + '><div class="dn"><span>' + esc(dn) +
-        (dn === '人事行政部' ? '<span class="ck-tag green">本部</span>' : '') + '</span><span class="cnt">' + a.n + ' 人</span></div>';
-      html += '<div class="ck-lights">';
-      html += lightItem(att, TH.att, '填报');
-      html += lightItem(link, TH.link, '关联');
-      html += lightItem(comp, TH.comp, '完整');
-      html += lightItem(ontime, TH.ontime, '按时');
-      html += '</div>';
-      if (a.cross > 0) html += '<div style="margin-top:8px;font-size:11.5px;color:#b91c1c">⚠️ 跨周期错挂 ' + a.cross + ' 条</div>';
-      html += '</div>';
-    });
-    html += '</div>';
+    // v3.4 变更：部门红绿灯矩阵 → 雷达图（每部门一条系列；本部高亮；跨周期错挂进 tooltip + 下方提示）
+    var crossDepts = depts.filter(function (d) { return agg[d].cross > 0; });
+    html += '<div class="ck-sec-t"><span class="bar"></span>部门健康度 · 雷达图（四指标均值 %）</div>';
+    if (depts.length) {
+      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；「人事行政部」为本部高亮（蓝），悬停看四指标明细与跨周期错挂');
+      PENDING['ckChartRadar'] = buildDeptRadarOption(agg, depts);
+    }
+    if (crossDepts.length) {
+      html += '<div class="ck-cap" style="margin-top:4px">⚠️ 跨周期错挂提示：' +
+        crossDepts.map(function (d) { return esc(d) + ' ' + agg[d].cross + ' 条'; }).join(' / ') +
+        '（日报月份 ≠ OGSM 考核周期，关联目标率统计失真）。</div>';
+    }
 
     // v3 新增：月度趋势折线图（跨所有历史月份）
-    var ms = monthsSorted();
     if (ms.length) {
       html += '<div class="ck-sec-t"><span class="bar"></span>月度趋势 · 可视化（折线）</div>';
       html += chartBox('ckChartTrend', Math.max(300, 320), '指标口径同红绿灯：填报/关联/完整/按时（公司均值 %）');
@@ -559,7 +628,7 @@
 
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
-      '③ 可视化 v3.3：顶部全局健康度仪表盘(gauge) + 月度趋势折线（末端标注环比 ▲▼ 箭头）+ 部门健康度柱状（按四指标最差项红绿灯分色、悬停看明细）+ 个人 TOP 柱状（红=末位 3 人需关注）+ 预警熔断指标柱状（红=已触发）+ 沉默字段 6 字段小图表，均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
+      '③ 可视化 v3.4：顶部全局健康度仪表盘(gauge，支持历史月份一键切换) + 月度趋势折线（末端标注环比 ▲▼ 箭头）+ 部门健康度雷达图（每部门一条系列、本部高亮、跨周期错挂进 tooltip）+ 部门健康度柱状（按四指标最差项红绿灯分色、悬停看明细）+ 个人 TOP 柱状（红=末位 3 人需关注）+ 预警熔断指标柱状（红=已触发）+ 沉默字段 6 字段小图表，均由 ECharts 在浏览器端渲染（需 vendor/echarts.min.js）。' +
       '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
@@ -600,6 +669,28 @@
         CHARTS.forEach(function (c) { try { c.resize(); } catch (e) {} });
       });
     }
+    // v3.4 仪表盘历史月份切换：绑定按钮点击 → 重设 GAUGE_C → 重绘仪表盘
+    bindGaugeButtons();
+  }
+
+  function bindGaugeButtons() {
+    var btns = document.querySelectorAll('.ck-mbtn');
+    btns.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var gm = btn.getAttribute('data-gm');
+        if (!gm || gm === GAUGE_C) return;
+        GAUGE_C = gm;
+        btns.forEach(function (b) { b.classList.remove('is-active'); });
+        btn.classList.add('is-active');
+        var el = document.getElementById('ckGauge');
+        if (el && typeof echarts !== 'undefined') {
+          var opt = buildGaugeOption(MONTH_HEALTH[GAUGE_C] == null ? 0 : MONTH_HEALTH[GAUGE_C], GAUGE_C);
+          var inst = echarts.getInstanceByDom(el);
+          if (inst) { inst.setOption(opt, true); }
+          else { var n = echarts.init(el); n.setOption(opt); CHARTS.push(n); }
+        }
+      });
+    });
   }
 
   global.ReportCockpit = { renderBody: renderBody, mount: mount };
