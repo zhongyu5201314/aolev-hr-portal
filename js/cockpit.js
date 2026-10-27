@@ -14,8 +14,9 @@
  *       个人 TOP 榜柱状补末位 3 人（红色标"需关注"）与 TOP 8 同图对比。
  * v3.3（2026-10-27）：顶部加全局健康度仪表盘（gauge）；预警"熔断条"改为熔断指标 vs 阈值柱状图（红=已触发），
  *       并保留文字要点兜底（echarts 缺失时仍可见）。
- * v3.4（2026-10-27）：仪表盘支持历史月份切换（顶部按钮组，按各月全局健康度）；部门红绿灯矩阵改为雷达图
- *       （每部门一条系列，四指标 max=100；「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示）。
+ * v3.4（2026-10-27）：仪表盘支持历史月份切换（顶部按钮组，按各月全局健康度，切换平滑过渡）；部门红绿灯矩阵改为雷达图
+ *       （每部门一条系列，四指标 max=100；区域填充色按该部门四指标最差项红绿灯；灰色虚线为达标基准线；
+ *       「人事行政部」本部高亮，跨周期错挂进 tooltip + 下方提示）。
  */
 (function () {
   'use strict';
@@ -302,25 +303,48 @@
     var seriesData = depts.map(function (dn) {
       var a = agg[dn];
       var isHome = dn === '人事行政部';
+      var m = { att: avg(a.att), link: avg(a.link), comp: avg(a.comp), ontime: avg(a.ontime) };
+      // 红绿灯语义：取四指标最差项判定该部门区域底色（绿=全达标/黄=有关注/红=有预警）
+      var worst = 'green';
+      [['att', TH.att], ['link', TH.link], ['comp', TH.comp], ['ontime', TH.ontime]].forEach(function (p) {
+        var lv = light(m[p[0]], p[1]);
+        if (lv === 'red') worst = 'red';
+        else if (lv === 'amber' && worst !== 'red') worst = 'amber';
+      });
+      var col = isHome ? C.accent : (worst === 'green' ? C.green : worst === 'amber' ? C.amber : C.red);
+      var fill = isHome ? 'rgba(74,158,255,.28)'
+        : (worst === 'green' ? 'rgba(22,163,74,.20)' : worst === 'amber' ? 'rgba(217,119,6,.20)' : 'rgba(220,38,38,.22)');
       return {
-        name: dn + (isHome ? '（本部）' : ''),
-        value: [avg(a.att), avg(a.link), avg(a.comp), avg(a.ontime)].map(function (x) { return x == null ? 0 : Number(x.toFixed(1)); }),
-        _raw: { att: avg(a.att), link: avg(a.link), comp: avg(a.comp), ontime: avg(a.ontime), cross: a.cross, n: a.n },
-        lineStyle: { color: isHome ? C.accent : 'rgba(139,92,246,.55)', width: isHome ? 3 : 1.5 },
-        areaStyle: { color: isHome ? 'rgba(74,158,255,.28)' : 'rgba(139,92,246,.06)' },
-        itemStyle: { color: isHome ? C.accent : C.muted }
+        name: dn + (isHome ? '（本部）' : '（' + LABEL[worst] + '）'),
+        value: [m.att, m.link, m.comp, m.ontime].map(function (x) { return x == null ? 0 : Number(x.toFixed(1)); }),
+        _raw: { att: m.att, link: m.link, comp: m.comp, ontime: m.ontime, cross: a.cross, n: a.n, worst: worst },
+        lineStyle: { color: col, width: isHome ? 3 : 2 },
+        areaStyle: { color: fill },
+        itemStyle: { color: col }
       };
+    });
+    // 达标基准线（红绿灯 v2 good 阈值）作参考边界：部门多边形落在线内=该指标未达标
+    seriesData.unshift({
+      name: '达标基准线',
+      value: [TH.att.good, TH.link.good, TH.comp.good, TH.ontime.good],
+      lineStyle: { color: '#9ca3af', width: 1.5, type: 'dashed' },
+      itemStyle: { color: '#9ca3af' },
+      areaStyle: { color: 'rgba(156,163,175,.06)' },
+      symbol: 'none'
     });
     return {
       backgroundColor: 'transparent',
-      title: { text: '部门健康度雷达（四指标均值 %）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
+      title: { text: '部门健康度雷达（四指标均值 %，区域按红绿灯）', left: 14, top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
       textStyle: { color: C.muted },
       tooltip: {
         backgroundColor: 'rgba(22,22,44,.95)', borderColor: 'rgba(74,158,255,.4)', textStyle: { color: C.ink },
         formatter: function (p) {
+          if (p.name === '达标基准线') {
+            return '达标基准线（红绿灯 v2 good）<br>填报≥' + TH.att.good + '% / 关联≥' + TH.link.good + '%<br>完整≥' + TH.comp.good + '% / 按时≥' + TH.ontime.good + '%';
+          }
           var r = p.data && p.data._raw; if (!r) return p.name;
           var f = function (x) { return x == null ? '—' : Number(x.toFixed(1)) + '%'; };
-          return p.name + '（' + r.n + ' 人）<br>填报 ' + f(r.att) + ' / 关联 ' + f(r.link) +
+          return p.name + '（' + r.n + ' 人 · ' + LABEL[r.worst] + '）<br>填报 ' + f(r.att) + ' / 关联 ' + f(r.link) +
             '<br>完整 ' + f(r.comp) + ' / 按时 ' + f(r.ontime) +
             (r.cross > 0 ? ('<br>⚠️ 跨周期错挂 ' + r.cross + ' 条') : '');
         }
@@ -400,6 +424,7 @@
       backgroundColor: 'transparent',
       title: { text: gTitle, left: 'center', top: 8, textStyle: { color: C.ink, fontSize: 14, fontWeight: 700 } },
       textStyle: { color: C.muted },
+      animationDurationUpdate: 800, animationEasingUpdate: 'cubicOut',
       series: [{
         type: 'gauge', startAngle: 210, endAngle: -30, min: 0, max: 100, radius: '84%', center: ['50%', '58%'],
         progress: { show: true, width: 16, itemStyle: { color: c } },
@@ -507,7 +532,7 @@
     var crossDepts = depts.filter(function (d) { return agg[d].cross > 0; });
     html += '<div class="ck-sec-t"><span class="bar"></span>部门健康度 · 雷达图（四指标均值 %）</div>';
     if (depts.length) {
-      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；「人事行政部」为本部高亮（蓝），悬停看四指标明细与跨周期错挂');
+      html += chartBox('ckChartRadar', Math.max(380, depts.length * 28 + 140), '每部门一条系列，四指标（填报/关联/完整/按时）均值 % 同红绿灯口径；区域填充色按该部门四指标最差项红绿灯（绿=全达标/黄=关注/红=预警）；灰色虚线为达标基准线，多边形落在线内=该指标未达标；「人事行政部」本部高亮（蓝），悬停看四指标明细与跨周期错挂');
       PENDING['ckChartRadar'] = buildDeptRadarOption(agg, depts);
     }
     if (crossDepts.length) {
@@ -686,7 +711,7 @@
         if (el && typeof echarts !== 'undefined') {
           var opt = buildGaugeOption(MONTH_HEALTH[GAUGE_C] == null ? 0 : MONTH_HEALTH[GAUGE_C], GAUGE_C);
           var inst = echarts.getInstanceByDom(el);
-          if (inst) { inst.setOption(opt, true); }
+          if (inst) { inst.setOption(opt); }
           else { var n = echarts.init(el); n.setOption(opt); CHARTS.push(n); }
         }
       });
