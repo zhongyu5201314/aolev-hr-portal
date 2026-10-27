@@ -37,8 +37,10 @@
     { name: '邹佩琳', real: [7.2, 7.8, 7.8], model: [7.4, 7.7, 7.5], trust: 'low' }
   ];
 
-  /* 18 条周报「下一步」承诺核销结果 —— 数据源：三份 10 月周复盘人工核对，截至 2026-10-24 */
-  var PROMISES = {
+  /* 周报「下一步」承诺核销结果 —— 数据源：门户本地 data/weekly_promises.csv（由 bake_promises.js 烘焙为 window.WEEKLY_PROMISES）。
+   * 飞书周报表无核销状态字段、且 9/10 月为空，故核销墙改由门户侧 CSV 维护、可手工刷新。
+   * 兜底值保留旧定稿，便于 file:// 预览或脚本未加载时降级。 */
+  var PROMISES = global.WEEKLY_PROMISES || {
     total: 18, full: 2, partial: 7, none: 9,
     breakdown: [['消失（无下文）', 4], ['顺延', 2], ['降级', 1], ['明确失败', 2]]
   };
@@ -194,21 +196,21 @@
     html += '</div>';
     if (l1 === 0) {
       html += '<div class="rl-warn">⚠️ <b>周报断层</b>：飞书周报表最后有数据的月份是 <b>' + esc(wkLast) +
-        '</b>，本月为零。所有依赖周报的闭环（承诺核销墙、周度 OGSM 达成）目前<b>只能靠人工周复盘文件维持</b>。' +
-        '要让它能自动刷新，需要恢复周报表填报，或在门户内建一个独立的周报录入通道。</div>';
+        '</b>，本月为零、且无核销状态字段。承诺核销墙已改用<b>门户侧 data/weekly_promises.csv</b> 独立维护（编辑 CSV → 重跑烘焙 → 部署即可刷新）；' +
+        '周度 OGSM 达成仍依赖飞书周报表，需恢复周报表填报后才能自动刷新。</div>';
     }
 
     /* --- 2. 承诺核销墙 --- */
-    html += secHead('承诺核销墙 · 18 条周报「下一步」的去向',
-      '数据源：三份 10 月周复盘人工核对（截至 2026-10-24）；受上述周报断层影响，暂无法自动刷新');
     var pr = PROMISES;
+    html += secHead('承诺核销墙 · ' + pr.total + ' 条周报「下一步」的去向',
+      '数据源：门户本地 data/weekly_promises.csv（bake_promises.js 烘焙）。飞书周报表无核销状态字段、9/10 月为空，故改由门户侧维护、可手工刷新；编辑 CSV 后重跑烘焙+部署即更新');
     html += '<div class="rl-kpis">' +
       '<div class="rl-kpi"><span>承诺总数</span><b>' + pr.total + '</b></div>' +
       '<div class="rl-kpi ok"><span>完全核销</span><b>' + pr.full + '</b><i>' + Math.round(100 * pr.full / pr.total) + '%</i></div>' +
       '<div class="rl-kpi mid"><span>部分核销</span><b>' + pr.partial + '</b><i>' + Math.round(100 * pr.partial / pr.total) + '%</i></div>' +
       '<div class="rl-kpi bad"><span>未核销</span><b>' + pr.none + '</b><i>' + Math.round(100 * pr.none / pr.total) + '%</i></div>' +
       '</div>';
-    html += '<div class="rl-note">未核销 9 条的构成：' +
+    html += '<div class="rl-note">未核销 ' + pr.none + ' 条的构成：' +
       pr.breakdown.map(function (x) { return esc(x[0]) + ' <b>' + x[1] + '</b>'; }).join('｜') +
       '。<b>半数承诺没有回执</b> —— 这是「不怕没做完，最怕不知道没做完」的直接证据。</div>';
 

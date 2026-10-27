@@ -43,7 +43,7 @@
       return ['vendor/echarts.min.js', 'js/perf_index.js'];
     }
     if (p0 === 'wiki') return ['vendor/marked.min.js', 'js/knowledge.js', 'js/wiki.js'];
-    if (p0 === 'reports') return ['vendor/echarts.min.js', 'js/report_data.js', 'js/report_board.js', 'js/report_loop.js', 'js/cockpit.js'];
+    if (p0 === 'reports') return ['vendor/echarts.min.js', 'js/report_data.js', 'js/weekly_promises.js', 'js/report_board.js', 'js/report_loop.js', 'js/cockpit.js'];
     if (p0 === 'review') return ['js/knowledge.js', 'js/review_board.js'];
     if (p0 === 'ai-pilot') return ['js/knowledge.js', 'js/ai_pilot.js'];
     if (p0 === 'ai-ops') return ['js/knowledge.js', 'js/ai_ops.js'];

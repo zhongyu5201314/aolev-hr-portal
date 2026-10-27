@@ -40,8 +40,9 @@
   }
   var LABEL = { green: '达标', amber: '关注', red: '预警', gray: '无数据' };
 
-  /* 周报承诺核销（定稿值，数据源：三份 10 月周复盘人工核对，截至 2026-10-24） */
-  var PROMISES = { total: 18, full: 2, partial: 7, none: 9,
+  /* 周报承诺核销 —— 数据源：门户本地 data/weekly_promises.csv（bake_promises.js 烘焙为 window.WEEKLY_PROMISES）。
+   * 飞书周报表无核销状态字段、9/10 月为空，故改由门户侧 CSV 维护、可手工刷新。兜底值保留旧定稿。 */
+  var PROMISES = global.WEEKLY_PROMISES || { total: 18, full: 2, partial: 7, none: 9,
     breakdown: [['消失（无下文）', 4], ['顺延', 2], ['降级', 1], ['明确失败', 2]] };
 
   function avg(arr) { return arr.length ? arr.reduce(function (x, y) { return x + y; }, 0) / arr.length : null; }
@@ -275,7 +276,7 @@
     var latestWk = wkCycles.length ? wkCycles[wkCycles.length - 1] : '—';
     html += '<div class="ck-mod"><div class="mt">🗓️ 周报</div>' +
       '<div class="mv">' + W.length + ' 条</div>' +
-      '<div class="md">最新周期：<b>' + esc(latestWk) + '</b>（飞书周报表最新有数据月份为 8 月，10 月为空，故承诺核销为静态定稿）。' +
+      '<div class="md">最新周期：<b>' + esc(latestWk) + '</b>（飞书周报表最新有数据月份为 8 月、9/10 月为空且无核销状态字段；承诺核销已改由门户 <b>data/weekly_promises.csv</b> 维护，编辑 CSV 重跑烘焙即刷新）。' +
       '承诺核销：完全 ' + PROMISES.full + ' / 部分 ' + PROMISES.partial + ' / 未核销 ' + PROMISES.none + '。</div>' +
       '<button class="ck-drill" data-drill="weekly">查看周报明细 →</button></div>';
     // 月报
@@ -286,11 +287,13 @@
       Object.keys(people).length + ' 人。历史月报月份：' + Object.keys(months).length + ' 个月。</div>' +
       '<button class="ck-drill" data-drill="monthly">查看月报明细 →</button></div>';
     // 闭环
+    var nbMap2 = {}; PROMISES.breakdown.forEach(function (x) { nbMap2[x[0]] = x[1]; });
+    var nD2 = nbMap2['消失（无下文）'] || 0, nF2 = nbMap2['顺延'] || 0, nX2 = nbMap2['降级'] || 0, nL2 = nbMap2['明确失败'] || 0;
     html += '<div class="ck-mod"><div class="mt">🔄 闭环管控</div>' +
       '<div class="mv">' + PROMISES.full + '/' + PROMISES.total + '</div>' +
       '<div class="md">本周报承诺核销墙：完全核销 ' + PROMISES.full + '、部分 ' + PROMISES.partial + '、未核销 ' +
-      PROMISES.none + '（消失 ' + PROMISES.breakdown[0][1] + ' / 顺延 ' + PROMISES.breakdown[1][1] +
-      ' / 降级 ' + PROMISES.breakdown[2][1] + ' / 失败 ' + PROMISES.breakdown[3][1] + '）。</div>' +
+      PROMISES.none + '（消失 ' + nD2 + ' / 顺延 ' + nF2 +
+      ' / 降级 ' + nX2 + ' / 失败 ' + nL2 + '）。</div>' +
       '<button class="ck-drill" data-drill="loop">查看闭环管控 →</button></div>';
     html += '</div>';
 
@@ -302,10 +305,13 @@
       (silentAI != null ? num(silentAI, 0) : '—') + '%</b>。三反思字段近乎全空，部门字段完整率被系统性压低。</div></div>';
     html += '<div class="ck-alert amber"><span class="ico">⚠️</span><div><b>跨周期错挂</b><br>全公司 10 月日报中，' +
       crossTotal + ' 条「日报月份 ≠ OGSM 考核周期」。目标归属口径错乱，关联目标率统计失真。</div></div>';
-    html += '<div class="ck-alert amber"><span class="ico">⚠️</span><div><b>承诺未核销</b><br>18 条周报「下一步」中，' +
+    var nbMap = {}; PROMISES.breakdown.forEach(function (x) { nbMap[x[0]] = x[1]; });
+    var nDisappear = nbMap['消失（无下文）'] || 0, nDefer = nbMap['顺延'] || 0,
+        nDown = nbMap['降级'] || 0, nFail = nbMap['明确失败'] || 0;
+    html += '<div class="ck-alert amber"><span class="ico">⚠️</span><div><b>承诺未核销</b><br>' + PROMISES.total + ' 条周报「下一步」中，' +
       PROMISES.none + ' 条（' + Math.round(100 * PROMISES.none / PROMISES.total) +
-      '%）无下文：消失 ' + PROMISES.breakdown[0][1] + ' / 顺延 ' + PROMISES.breakdown[1][1] +
-      ' / 降级 ' + PROMISES.breakdown[2][1] + ' / 明确失败 ' + PROMISES.breakdown[3][1] + '。</div></div>';
+      '%）无下文：消失 ' + nDisappear + ' / 顺延 ' + nDefer +
+      ' / 降级 ' + nDown + ' / 明确失败 ' + nFail + '。</div></div>';
     html += '</div>';
 
     // OGSM 目标健康度（各部门目标数 + 已对齐率）
@@ -379,7 +385,7 @@
     html += '<div class="ck-note">说明：① 驾驶舱与四个明细页签共用同源数据（飞书日报/周报/月报 + OGSM 目标），仅做前端聚合，不拉飞书。其中「日报填报率」为日报填报口径（截至数据日应出勤天数的填报覆盖），非 HR 真实出勤。' +
       '② 红绿灯阈值 v2（达标导向）：出勤≥85/关联≥50/完整≥60/按时≥90/已对齐≥70 为绿，黄为关注，红为预警，可按管理偏好在 cockpit.js 顶部调整。' +
       '③ 月度环比、个人 TOP 榜、沉默字段部门排行均为 v2 新增派生指标，数据源同上；周报承诺核销、跨周期错挂为已定稿/实测值。' +
-      '④ 周报表 10 月为空，核销墙暂不能自动刷新（门户内部录入通道建设中）。' +
+      '④ 周报表 9/10 月为空且无核销状态字段，核销墙已改由门户 data/weekly_promises.csv 维护、可手工刷新（编辑 CSV → node bake_promises.js → 部署）。' +
       '⑤ 个人绩效分与 ⚠️ 低可信评价按门户脱敏策略不在公网展开，仅在「闭环管控」页签本地可见。</div>';
 
     html += '</div>';
