@@ -24,6 +24,8 @@
     /* 头部 */
     '.rb-head h1{font-size:20px;font-weight:700;margin:0 0 4px;color:#fff}',
     '.rb-head .sub{font-size:12px;color:var(--rb-muted);margin:0 0 16px}',
+    '.rb-doc-link{display:inline-block;margin:0 0 14px;font-size:13px;font-weight:600;color:var(--rb-accent);text-decoration:none}',
+    '.rb-doc-link:hover{text-decoration:underline}',
     /* 筛选条（吸顶） */
     '.rb-filter{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:rgba(15,15,26,.85);backdrop-filter:blur(6px);padding:10px 12px;border:1px solid var(--rb-border);border-radius:12px;margin-bottom:14px}',
     '.rb-filter select,.rb-filter input{background:var(--rb-card);color:var(--rb-ink);border:1px solid var(--rb-border);border-radius:8px;padding:6px 10px;font-size:13px}',
@@ -558,7 +560,8 @@
       (meta.weekly_count || 0) + ' 条周报 · 同步于 ' + (meta.synced_at || '—');
 
     view.innerHTML = '<div class="rb"><div class="rb-page">' +
-      '<div class="rb-head"><h1>📊 日周月报</h1><p class="sub">' + esc(sub) + '</p></div>' +
+      '<div class="rb-head"><h1>📊 日周月报</h1><p class="sub">' + esc(sub) + '</p>' +
+      '<a class="rb-doc-link" href="dept-review-2026-11.html" target="_blank" rel="noopener">📄 部门10月复盘暨11月规划 →</a></div>' +
       '<div class="rb-main" id="rbMain">' + renderMainHtml() + '</div>' +
       '</div></div>';
 

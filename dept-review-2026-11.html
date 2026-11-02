@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>人事行政部 2026年10月部门复盘暨11月规划</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#f5f6f8; --card:#fff; --line:#e6e8ec; --ink:#1a1d24; --sub:#6b7280;
+    --blue:#2563eb; --blue-deep:#1e40af; --teal:#0d9488; --amber:#d97706; --green:#16a34a; --red:#dc2626;
+    --soft-blue:#f0f4fb; --row:#eef0f4;
+  }
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px; line-height:1.7;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ============ 头部 Hero ============ */
+  .hero{
+    background:linear-gradient(135deg,#1e3a8a 0%,#2563eb 58%,#0d9488 135%);
+    color:#fff;padding:44px 0 40px;border-radius:0 0 24px 24px;
+  }
+  .hero-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  .conf-chip{
+    background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.4);border-radius:999px;
+    padding:4px 14px;font-size:12px;letter-spacing:2px;font-weight:600;
+  }
+  .hero-org{font-size:13px;color:rgba(255,255,255,.85);letter-spacing:1px}
+  .hero h1{font-size:32px;line-height:1.4;font-weight:800;letter-spacing:.5px}
+  .hero-sub{margin-top:12px;font-size:15px;color:rgba(255,255,255,.9)}
+  .hero-sub b{font-weight:700}
+  .hero-meta{
+    margin-top:26px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px 28px;
+    background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.22);border-radius:12px;padding:16px 20px;
+  }
+  .hero-meta div{display:flex;flex-direction:column;gap:1px}
+  .hero-meta span{font-size:12px;color:rgba(255,255,255,.75)}
+  .hero-meta b{font-size:15px;font-weight:600}
+
+  /* ============ 目录 ============ */
+  .toc{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:22px auto}
+  .toc-title{font-size:13px;color:var(--sub);font-weight:700;margin-bottom:10px;letter-spacing:1px}
+  .toc ol{list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:6px 18px}
+  .toc a{color:var(--ink);text-decoration:none;font-size:14px;display:flex;gap:8px;padding:5px 10px;border-radius:8px}
+  .toc a:hover{background:var(--soft-blue);color:var(--blue)}
+  .toc .no{color:var(--blue);font-weight:800;flex:none}
+
+  /* ============ 区块通用 ============ */
+  main{padding:26px 0 44px}
+  .sec{margin-bottom:38px}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .sec-no{
+    flex:none;min-width:36px;height:36px;border-radius:10px;background:var(--blue);color:#fff;
+    font-weight:800;display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .sec-head h2{font-size:24px;font-weight:800;line-height:1.35}
+  .lead{color:var(--sub);font-size:14px;margin-bottom:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mt{margin-top:14px}
+
+  /* ============ 摘要与KPI ============ */
+  .verdict{
+    display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;
+    background:linear-gradient(120deg,#eff6ff,#f0fdfa);border:1px solid #dbeafe;border-radius:12px;
+    padding:18px 22px;margin-bottom:16px;
+  }
+  .verdict .tag{font-size:20px;font-weight:800;color:var(--blue-deep)}
+  .verdict .txt{font-size:14px;color:var(--ink)}
+  .kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden}
+  .kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue)}
+  .kpi .lbl{font-size:13px;color:var(--sub)}
+  .kpi .num{font-size:30px;font-weight:800;color:var(--blue-deep);line-height:1.25;margin:2px 0 4px}
+  .kpi .num small{font-size:15px;font-weight:700;color:var(--sub)}
+  .kpi .note{font-size:12px;color:var(--sub);line-height:1.6}
+
+  /* ============ 表格 ============ */
+  .tbl-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px}
+  thead th{background:var(--soft-blue);color:var(--blue-deep);font-weight:700;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  tbody td{padding:10px 12px;border-bottom:1px solid var(--row);vertical-align:top}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#fafbfd}
+  .tbl-note{font-size:12px;color:var(--sub);margin-top:8px}
+
+  /* ============ 徽章 ============ */
+  .badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap;line-height:1.6}
+  .b-green{background:#dcfce7;color:#15803d}
+  .b-amber{background:#fef3c7;color:#b45309}
+  .b-red{background:#fee2e2;color:#b91c1c}
+  .b-blue{background:#dbeafe;color:#1d4ed8}
+  .b-gray{background:#f3f4f6;color:#4b5563}
+  .legend{font-size:12px;color:var(--sub);margin-bottom:10px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+
+  /* ============ 主线卡 ============ */
+  .line-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px}
+  .line-card h3{font-size:16px;font-weight:800;margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .line-card h3 .ln{flex:none;width:24px;height:24px;border-radius:8px;background:var(--soft-blue);color:var(--blue);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .line-card ul{list-style:none}
+  .line-card li{font-size:14px;padding:4px 0 4px 16px;position:relative}
+  .line-card li::before{content:"";position:absolute;left:2px;top:14px;width:6px;height:6px;border-radius:50%;background:var(--teal)}
+  .say{background:var(--soft-blue);border:1px solid #dbeafe;border-radius:12px;padding:16px 20px;font-size:14px}
+  .say b{color:var(--blue-deep)}
+  .say .row{padding:6px 0;border-bottom:1px dashed #dbeafe}
+  .say .row:last-child{border-bottom:none}
+
+  /* ============ 成员卡 ============ */
+  .member{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:16px}
+  .m-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .avatar{
+    flex:none;width:48px;height:48px;border-radius:50%;
+    background:linear-gradient(135deg,var(--blue),var(--teal));color:#fff;font-weight:800;font-size:19px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .m-name{font-size:18px;font-weight:800}
+  .m-role{font-size:13px;color:var(--sub)}
+  .m-role .r-chip{display:inline-block;background:var(--soft-blue);color:var(--blue-deep);border-radius:999px;padding:1px 10px;font-size:12px;font-weight:600;margin-right:6px}
+  .m-body{display:grid;grid-template-columns:1.7fr 1fr;gap:24px;margin-top:16px}
+  .m-h{font-size:14px;font-weight:800;color:var(--blue-deep);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .m-h::before{content:"";width:4px;height:14px;border-radius:2px;background:var(--blue)}
+  ol.ach{list-style:none;counter-reset:ach}
+  ol.ach li{counter-increment:ach;position:relative;padding:7px 0 7px 34px;border-bottom:1px dashed var(--row);font-size:14px}
+  ol.ach li:last-child{border-bottom:none}
+  ol.ach li::before{
+    content:counter(ach);position:absolute;left:0;top:10px;width:22px;height:22px;border-radius:50%;
+    background:var(--soft-blue);color:var(--blue);font-size:12px;font-weight:800;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .dt{color:var(--blue);font-weight:700;font-size:13px;white-space:nowrap}
+  .stat{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--row);font-size:14px}
+  .stat:last-child{border-bottom:none}
+  .stat b{color:var(--blue-deep);white-space:nowrap;font-weight:800}
+  ul.impr{list-style:none}
+  ul.impr li{position:relative;padding:5px 0 5px 24px;font-size:14px}
+  ul.impr li::before{
+    content:"!";position:absolute;left:0;top:9px;width:17px;height:17px;border-radius:50%;
+    background:#fef3c7;color:#b45309;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;
+  }
+  .side-block{margin-bottom:18px}
+  .side-block:last-child{margin-bottom:0}
+
+  /* ============ OGSM 策略卡 ============ */
+  .strat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  .strat h3{font-size:16px;font-weight:800;margin-bottom:4px}
+  .strat .s-goal{font-size:14px;color:var(--sub);margin-bottom:12px}
+  .phases{display:flex;flex-wrap:wrap;gap:8px}
+  .phase{flex:1;min-width:160px;background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13px}
+  .phase .p-t{font-size:12px;font-weight:800;color:var(--sub);margin-bottom:4px}
+  .phase.now{background:var(--soft-blue);border-color:#bfdbfe}
+  .phase.now .p-t{color:var(--blue)}
+  .strat .exp{font-size:13px;color:var(--sub);margin-top:10px;padding-top:10px;border-top:1px dashed var(--row)}
+  .strat .exp b{color:var(--teal)}
+
+  /* ============ 共性问题 ============ */
+  .prob{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin-bottom:14px}
+  .prob-h{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+  .prob-no{flex:none;width:28px;height:28px;border-radius:50%;background:#fee2e2;color:#b91c1c;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .prob-h .t{font-size:15px;font-weight:800}
+  .who{display:inline-block;background:var(--soft-blue);color:var(--blue-deep);border-radius:999px;padding:1px 10px;font-size:12px;font-weight:600}
+  .prob p{font-size:14px;color:var(--ink)}
+  .prob p.basis{color:var(--sub);font-size:13px;margin-top:6px}
+
+  /* ============ 11月主题 ============ */
+  .theme{
+    background:linear-gradient(120deg,#1e40af,#2563eb 60%,#0d9488);color:#fff;border-radius:12px;
+    padding:24px 26px;margin-bottom:16px;
+  }
+  .theme .t-label{font-size:13px;color:rgba(255,255,255,.8);letter-spacing:2px}
+  .theme .t-main{font-size:22px;font-weight:800;margin:4px 0 10px}
+  .theme .t-sub{font-size:14px;color:rgba(255,255,255,.9)}
+  .theme .t-sub b{font-weight:800}
+
+  /* ============ 承接标记 ============ */
+  .chip{display:inline-block;padding:1px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap;vertical-align:1px}
+  .c-task{background:#dbeafe;color:#1d4ed8}
+  .c-risk{background:#fef3c7;color:#b45309}
+  .c-ops{background:#ccfbf1;color:#0f766e}
+  .chip-legend{font-size:12px;color:var(--sub);background:var(--soft-blue);border:1px solid #dbeafe;border-radius:10px;padding:10px 14px;margin-bottom:14px;line-height:1.8}
+
+  /* ============ 过程管控 ============ */
+  .layer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .layer{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;border-top:4px solid var(--blue)}
+  .layer.l2{border-top-color:var(--teal)}
+  .layer.l3{border-top-color:var(--amber)}
+  .layer h3{font-size:15px;font-weight:800;margin-bottom:2px}
+  .layer .l-sub{font-size:12px;color:var(--sub);margin-bottom:8px}
+  .layer ul{list-style:none}
+  .layer li{font-size:13px;padding:4px 0 4px 14px;position:relative}
+  .layer li::before{content:"·";position:absolute;left:2px;font-weight:800;color:var(--blue)}
+  .mech{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .mech .card h3{font-size:15px;font-weight:800;margin-bottom:6px;color:var(--blue-deep)}
+  .mech .card p{font-size:14px}
+
+  /* ============ 尾注 ============ */
+  .notes{font-size:13px;color:var(--sub)}
+  .notes ol{padding-left:20px}
+  .notes li{margin-bottom:10px}
+  .notes b{color:var(--ink)}
+  .notes ul{padding-left:20px;margin-top:4px}
+  .notes ul li{margin-bottom:4px}
+
+  /* ============ 页脚 ============ */
+  footer{border-top:1px solid var(--line);background:var(--card);padding:24px 0 34px;margin-top:8px}
+  .foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;color:var(--sub)}
+  .foot .f-title{font-weight:700;color:var(--ink)}
+
+  /* ============ 响应式（760px 断点） ============ */
+  @media (max-width:760px){
+    .hero{padding:32px 0 28px;border-radius:0 0 18px 18px}
+    .hero h1{font-size:25px}
+    .hero-sub{font-size:14px}
+    .hero-meta{grid-template-columns:1fr 1fr;gap:10px 16px;padding:14px 16px}
+    .toc ol{grid-template-columns:1fr 1fr}
+    .sec-head h2{font-size:20px}
+    .kpi-grid{grid-template-columns:1fr 1fr}
+    .kpi .num{font-size:25px}
+    .grid-2,.m-body,.layer-grid,.mech{grid-template-columns:1fr}
+    .verdict .tag{font-size:17px}
+    .theme .t-main{font-size:18px}
+    main{padding:20px 0 32px}
+  }
+  @media (max-width:460px){
+    .kpi-grid{grid-template-columns:1fr}
+    .hero-meta{grid-template-columns:1fr}
+    .toc ol{grid-template-columns:1fr}
+  }
+
+  /* ============ 打印 ============ */
+  @media print{
+    body{background:#fff;font-size:12px}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .toc{display:none}
+    .hero{border-radius:0;padding:30px 0 26px}
+    .card,.member,.kpi,.strat,.prob,.line-card,.layer,.theme,.verdict,.say{break-inside:avoid}
+    .sec-head{break-after:avoid}
+    tr{break-inside:avoid}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:100%}
+    .tbl-wrap{overflow:visible}
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= 头部 ================= -->
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-top">
+      <span class="conf-chip">内部资料 · 请勿外传</span>
+      <span class="hero-org">人事行政部 · 月度复盘与规划</span>
+    </div>
+    <h1>人事行政部 2026年10月部门复盘<br>暨11月规划</h1>
+    <p class="hero-sub">整体判断：<b>符合预期 · 局部滞后</b>　｜　部门主题：从上线走向正式运行、从机制走向挂钩绩效</p>
+    <div class="hero-meta">
+      <div><span>报告周期</span><b>2026.10.01 – 10.31</b></div>
+      <div><span>编制日期</span><b>2026-11-02</b></div>
+      <div><span>部门负责人</span><b>钟喻</b></div>
+      <div><span>复盘覆盖成员</span><b>钟喻 · 邹佩琳 · 李文杰</b></div>
+      <div><span>编制方</span><b>HR专家团队</b></div>
+      <div><span>读者范围</span><b>部门内部及公司管理层</b></div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= 目录 ================= -->
+<nav class="toc wrap" aria-label="文档目录">
+  <div class="toc-title">目 录</div>
+  <ol>
+    <li><a href="#sec-summary"><span class="no">摘要</span>核心摘要</a></li>
+    <li><a href="#sec-1"><span class="no">一</span>10月复盘总览</a></li>
+    <li><a href="#sec-2"><span class="no">二</span>关键指标看板</a></li>
+    <li><a href="#sec-3"><span class="no">三</span>OGSM策略10月对照</a></li>
+    <li><a href="#sec-4"><span class="no">四</span>成员贡献盘点</a></li>
+    <li><a href="#sec-5"><span class="no">五</span>共性问题与根因</a></li>
+    <li><a href="#sec-6"><span class="no">六</span>风险清单与应对</a></li>
+    <li><a href="#sec-7"><span class="no">七</span>11月规划总思路</a></li>
+    <li><a href="#sec-8"><span class="no">八</span>11月部门重点任务</a></li>
+    <li><a href="#sec-9"><span class="no">九</span>个人11月重点</a></li>
+    <li><a href="#sec-10"><span class="no">十</span>过程管控与保障机制</a></li>
+    <li><a href="#sec-notes"><span class="no">注</span>尾注：数据来源与口径说明</a></li>
+  </ol>
+</nav>
+
+<main class="wrap">
+
+  <!-- ================= 核心摘要 ================= -->
+  <section class="sec" id="sec-summary">
+    <div class="sec-head"><span class="sec-no">摘</span><h2>核心摘要</h2></div>
+    <p class="lead">本节给出部门10月整体完成度判断与六个关键数字，各章节依据详见后文。</p>
+
+    <div class="verdict">
+      <span class="tag">结论：符合预期，局部滞后</span>
+      <span class="txt">10月为「全量推广与弹性编制落地」攻坚月：人力数字舱/运营作战地图数字舱/人事数据大屏相继从 0 到上线，离职预测模型推翻式重构并新增考勤因子，9月全员 AI 绩效打分无错误，健康顾问跨部门协同系统上线，OGSM 全员录入完成——达成预期。但数字舱正式飞书迁移未完、核心岗招聘（副总/公益负责人）未达成、官网备案与阿里云待更新、数据真实性校验与激励联动未完成、日报关键字段空置延续，构成局部滞后。</span>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="lbl">日报填报天数（3人合计）</div>
+        <div class="num">57<small> 天</small></div>
+        <div class="note">钟喻20 + 李文杰20 + 邹佩琳17（19条含2条空白），三人接近全月填报</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">数字化模块交付（李文杰口径）</div>
+        <div class="num">11+ <small> 模块</small></div>
+        <div class="note">增长作战地图双大屏、人事数据大屏、离职预测重构、简历解析 skill、考勤自动录入、口腔顾问协同流程、年度激励自动计算表、月复盘 skill、周复盘自动化、官网备案、WorkBuddy 续约等</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">9月 AI 绩效全员打分</div>
+        <div class="num">无错误<small> 完成</small></div>
+        <div class="note">10.08–10.10 完成总助/人事/电商/供应链等部门评分，全员评分结果无错误</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">OGSM 目标录入</div>
+        <div class="num">全员<small> 完成</small></div>
+        <div class="note">10.30 财务部门完成，人事/总助/电商/供应链/仓库/财务 6 部门全部录入并补录绩效系统</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">在招关键岗位</div>
+        <div class="num">副总<small> 1名识别</small> / 公益负责人<small> 空缺</small></div>
+        <div class="note">副总 10.22 识别 1 名候选人（匹配度待评估）；公益负责人重新搜索暂无合适人选，核心岗招聘未达成</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">核心人才保留</div>
+        <div class="num">跨部门<small> 系统上线</small></div>
+        <div class="note">健康顾问扎根计划沟通一致，10.17 上线跨部门协同系统覆盖电商/市场；关怀追踪机制常态化</div>
+      </div>
+    </div>
+
+    <div class="grid-2 mt">
+      <div class="card">
+        <div class="m-h">支撑「符合预期」</div>
+        <ul class="impr" style="list-style:none">
+          <li>数字舱/驾驶舱从 0 到上线：人力数字舱、运营增长作战地图数字舱、人事数据大屏</li>
+          <li>离职预测模型推翻式重构并新增考勤因子，精准度更高</li>
+          <li>9月 AI 绩效打分全员无错误；周复盘自动化全月无异常</li>
+          <li>健康顾问跨部门协同系统上线；OGSM 全员录入完成</li>
+          <li>一批自研工具交付同事落地（简历解析/考勤录入/口腔协同/激励计算表）</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="m-h">构成「局部滞后」</div>
+        <ul class="impr">
+          <li>数字舱停留测试/迭代：人力数字舱待迁移正式飞书、作战地图 70%、闭环系统 50%、大模型接入 10%</li>
+          <li>核心岗招聘未达成：副总匹配度不高、公益负责人空缺</li>
+          <li>官网备案过期 + 阿里云信息待更新（11.02 前必须完成）</li>
+          <li>数据真实性校验与激励联动机制未完成</li>
+          <li>邹佩琳日报仅 10.14 一条挂接 OGSM、三字段全月 0 填报</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 一、10月复盘总览 ================= -->
+  <section class="sec" id="sec-1">
+    <div class="sec-head"><span class="sec-no">一</span><h2>10月复盘总览</h2></div>
+    <p class="lead">按部门四条主线回顾10月工作全貌，并呈现三位成员各自的贡献定位。</p>
+
+    <div class="grid-2">
+      <div class="line-card">
+        <h3><span class="ln">①</span>飞书人事行政板块深化与数据贯通</h3>
+        <ul>
+          <li>日周月报升级版（跨部门协同板块）正式上线：10.10 复盘交流会、10.13 测试成功上线并配套宣讲资料</li>
+          <li>人力数字舱在测试系统上线、数据实时更新（10.17，100%），待迁移至正式飞书系统</li>
+          <li>增长作战地图数字舱：重构优化 DEMO 上线（10.21）并二次优化交文杰修正 2.0（10.23，70%）；周月分屏测试（10.30，60%）</li>
+          <li>人事数据大屏搭建完成（李文杰 10.17–10.21），数据源完全来自飞书实时更新，新增卡片点击跳转功能</li>
+          <li>搭建「日报→周总结→月度复盘→本月规划→进度管控」闭环系统（10.27/10.28，50%）</li>
+        </ul>
+      </div>
+      <div class="line-card">
+        <h3><span class="ln">②</span>HR 数字化价值产出与 AI 提效</h3>
+        <ul>
+          <li>9月 AI 绩效打分：10.08–10.10 完成各部门评分，全员结果无错误；推进人工复审（仅仓库未完成，已反馈钟总）</li>
+          <li>离职预测模型推翻旧模型重构（10.13–10.15），新增考勤因子（10.16/10.19），精准度更高，11月启用</li>
+          <li>月复盘 skill 优化更新（10.13/10.27–10.30）；周复盘自动化全月定时生成、审核、发送无异常</li>
+          <li>简历解析与人才匹配 skill（10.20）、考勤自动录入功能（10.21）开发完成交付佩琳使用</li>
+          <li>口腔健康顾问协同流程表单+自动化搭建闭环（10.16–10.22）；年度激励方案自动计算表交付钟总（10.27）</li>
+          <li>大模型（阿里云）接入数字舱可行性验证（10.20，10%推进中）</li>
+        </ul>
+      </div>
+      <div class="line-card">
+        <h3><span class="ln">③</span>核心团队稳定与招聘配置</h3>
+        <ul>
+          <li>健康顾问扎根计划：与市场/电商沟通一致（10.13/10.16），飞书开发跨部门协同渠道，10.17 上线跨部门协同系统</li>
+          <li>核心人才保留率≥92% 与关怀追踪机制常态化（10.09，100%）；核心人员沟通覆盖健康顾问、公益项目负责人</li>
+          <li>副总（高管）招聘：10.22 识别 1 名候选人（匹配度待评估），完成沟通与高管面试评估记分表制作入库（10.29/10.30）</li>
+          <li>公益负责人：原负责人离职（10.22 办理手续），重新搜索暂无合适简历；运营助理/公益项目主管到岗融入推进中</li>
+          <li>入离转调：口腔健康顾问入职（10.08–10.15 全流程）、公益负责人离职及账号处理（10.22–10.23）</li>
+        </ul>
+      </div>
+      <div class="line-card">
+        <h3><span class="ln">④</span>考勤绩效月度结案、激励与培训、行政后勤保障</h3>
+        <ul>
+          <li>9月考勤：10.08–10.12 汇总调整、上传流程并结案；9月绩效：10.08–10.12 全员结案走完流程</li>
+          <li>年度激励方案宣讲会办结（10.10），交各部门负责人二次宣讲；自动计算表框架交付（10.27）</li>
+          <li>双十一前人员安排全部完成与沟通（10.15/10.16，100%）</li>
+          <li>10月生日会筹办并举办（10.13–10.29）；医疗/口腔/公益类培训组织与参与（10.16–10.24）</li>
+          <li>行政保障：物业停车码注册、办公室局部漏水处理、停电居家办公安排（10.21–10.22）；官网备案信息更新提交审核（10.30）</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="say mt">
+      <div class="m-h">成员贡献一句话（据个人报告定位）</div>
+      <div class="row"><b>钟喻：</b>统筹「飞书板块深化 + 数字化价值产出 + 核心团队稳定」三线，承担战略对齐、数字舱/驾驶舱从 0 到上线、闭环管控系统搭建与健康顾问跨部门协同落地，并完成高管招聘评估准备。</div>
+      <div class="row"><b>邹佩琳：</b>主责招聘配置、考勤绩效月度结案、员工全周期管理（入离转调）与行政后勤/组织活动保障，是部门月度运营闭环的主要执行人；本月核心岗招聘与日报目标挂钩率为短板。</div>
+      <div class="row"><b>李文杰：</b>主责绩效体系 AI 化收官、增长作战地图双大屏与人事数据大屏交付、离职预测模型重构与一批自研工具落地，是部门数字化转型的主要技术执行人。</div>
+    </div>
+  </section>
+
+  <!-- ================= 二、关键指标看板 ================= -->
+  <section class="sec" id="sec-2">
+    <div class="sec-head"><span class="sec-no">二</span><h2>关键指标看板</h2></div>
+    <p class="lead">下表汇总部门10月关键量化指标，口径以三份10月个人复盘报告为准。</p>
+    <div class="tbl-wrap">
+      <table>
+        <thead>
+          <tr><th scope="col">指标</th><th scope="col">10月实际</th><th scope="col">说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>日报填报天数（3人合计）</td><td><b>57天</b></td><td>钟喻20 + 李文杰20 + 邹佩琳17（19条含2条空白）</td></tr>
+          <tr><td>数字化模块交付（李文杰口径）</td><td><b>11+</b> 模块</td><td>增长作战地图双大屏、人事数据大屏、离职预测重构、简历解析 skill、考勤自动录入、口腔顾问协同、年度激励自动计算表、月复盘 skill、周复盘自动化、官网备案、WorkBuddy 续约等</td></tr>
+          <tr><td>9月 AI 绩效打分</td><td>全员<b>无错误</b>完成</td><td>10.08–10.10 完成总助/人事/电商/供应链等部门评分；人工复审仅仓库未完成（已反馈钟总）</td></tr>
+          <tr><td>OGSM 目标录入</td><td>全员完成（<b>6部门</b>）</td><td>人事/总助/电商/供应链/仓库/财务 10.30 全部录入并补录绩效系统</td></tr>
+          <tr><td>增长作战地图大屏</td><td>管理版+大屏版<b>已交付</b></td><td>10.17 开发、10.22 向徐总展示；二版优化中；每月初财务确认数据后自动更新</td></tr>
+          <tr><td>人事数据大屏</td><td><b>已交付</b></td><td>10.21/10.22 搭建完成并展示；数据源飞书实时更新、卡片点击跳转</td></tr>
+          <tr><td>离职预测模型</td><td>重构<b>已交付</b>，11月启用</td><td>推翻旧模型+新增考勤因子，9月预测精准度更高；10.20 交付钟总</td></tr>
+          <tr><td>在招关键岗位</td><td>副总 <b>1名识别</b>；公益负责人 <b>空缺</b></td><td>副总 10.22 识别候选人（匹配度待评估）；公益负责人重新搜索暂无合适人选</td></tr>
+          <tr><td>招聘简历处理量（邹佩琳）</td><td>单日 5/14/11/13/16/18 份</td><td>10.20–10.30 逐日留痕；主动搜索 18 份暂未回复；AI 智能体邀约效果不理想</td></tr>
+          <tr><td>9月考勤绩效结案</td><td>10.08–10.12 完成</td><td>考勤汇总上传流程结案、全员绩效结案走完流程</td></tr>
+          <tr><td>健康顾问跨部门协同</td><td><b>系统上线</b></td><td>10.17 上线覆盖电商/市场；扎根计划沟通一致（10.13/10.16）</td></tr>
+          <tr><td>年度激励自动计算表</td><td>框架<b>已交付</b></td><td>10.27 交付钟总，各板块数据实时互通计算，待数据完整后自动算奖</td></tr>
+          <tr><td>数字舱正式飞书迁移</td><td><b>待迁移</b></td><td>人力数字舱测试系统上线（10.17）待迁正式飞书；数据校验与激励联动未完</td></tr>
+          <tr><td>官网合规</td><td>备案更新<b>审核中</b></td><td>10.30 提交备案更新；阿里云信息待徐总手机验证码更新（11.02 前必须完成）</td></tr>
+          <tr><td>AI 提效实践</td><td>实际应用 <b>11+ 类</b></td><td>钟喻4类（AI事务级计分/大模型接入验证/数字舱自动化/学习赋能）+ 李文杰4类（AI绩效评分/离职预测/复盘自动生成/简历解析）+ 邹佩琳3类（简历筛选器/AI智能体/技能导入）等</td></tr>
+          <tr><td>难题闭环</td><td>口径不一</td><td>钟喻：2项突发（双十一/停电）从「突发工作情况」提炼；邹佩琳：0项（三字段全月0填报）；李文杰：3项突发（口腔流程/官网备案/阿里云）均已闭环或纳入计划</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 三、OGSM策略10月对照 ================= -->
+  <section class="sec" id="sec-3">
+    <div class="sec-head"><span class="sec-no">三</span><h2>OGSM策略10月对照</h2></div>
+    <p class="lead">以《2026年HRD OGSM战略思维导图》为锚：先看三大支柱与三大策略框架，再对照10月里程碑逐项判定。达成判定沿用原图既定判定，未自行改判。</p>
+
+    <h3 style="font-size:18px;font-weight:800;margin:6px 0 10px">3.1 三大支柱（Objective）</h3>
+    <div class="tbl-wrap">
+      <table style="min-width:680px">
+        <thead>
+          <tr><th scope="col">支柱</th><th scope="col">核心目标</th><th scope="col">衡量指标</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><b>组织人才</b></td><td>关键岗位按期满编，构建支撑大单品增长的梯队能力</td><td>核心岗到岗率≥90%；内部活水转岗成功率≥60%；关键岗6个月留存率≥85%</td></tr>
+          <tr><td><b>流程协同</b></td><td>跑通数字流程化组织，跨部门项目高效交付</td><td>跨部门项目按时交付率≥80%；流程平均耗时下降≥20%；系统数据错误率&lt;1%</td></tr>
+          <tr><td><b>激励能效</b></td><td>建立与业务爆发绑定的弹性激励体系</td><td>人效同比提升≥25%；激励方案试点业务线营收贡献占比≥30%；员工满意度≥85分</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 style="font-size:18px;font-weight:800;margin:18px 0 10px">3.2 三大策略（Strategy）与推进节奏</h3>
+    <div class="strat">
+      <h3>S1 数字流程化四阶推进</h3>
+      <div class="s-goal">以自动化规则与协同看板为抓手，分四阶推进数字流程化组织。</div>
+      <div class="phases">
+        <div class="phase"><div class="p-t">6-7月</div>飞书自动化规则配置与高频模块上线</div>
+        <div class="phase"><div class="p-t">8-9月</div>建立OGSM全策略协同看板</div>
+        <div class="phase"><div class="p-t">10月（已完成）</div>识别重复流程引入自动化</div>
+        <div class="phase now"><div class="p-t">11-12月（当前节点）</div>完成全业务线RACI界定并挂钩绩效</div>
+      </div>
+      <div class="exp"><b>预期：</b>流程时效+25%、跨部门返工率-40%、项目管理透明化100%。</div>
+    </div>
+    <div class="strat">
+      <h3>S2 关键人才闪电战与内部活水</h3>
+      <div class="s-goal">关键岗定向交付与内部竞聘并举，完成梯队入库与动态汰换。</div>
+      <div class="phases">
+        <div class="phase"><div class="p-t">6月</div>关键岗JD与人才雷达图</div>
+        <div class="phase"><div class="p-t">7-8月</div>猎头定向交付与内部竞聘</div>
+        <div class="phase"><div class="p-t">9月</div>实战创变营（开放业务数据沙盒）</div>
+        <div class="phase now"><div class="p-t">10-12月（当前节点）</div>完成梯队入库与动态汰换</div>
+      </div>
+      <div class="exp"><b>预期：</b>核心岗到岗周期缩短至35天、内部活水补充占比≥50%、关键岗6个月留存≥85%。</div>
+    </div>
+    <div class="strat">
+      <h3>S3 增长导向的弹性激励与项目制管理</h3>
+      <div class="s-goal">激励测算合规起步，试点迭代后全量上线并同步项目制责任书签署。</div>
+      <div class="phases">
+        <div class="phase"><div class="p-t">6月</div>激励测算与合规审核</div>
+        <div class="phase"><div class="p-t">7-8月</div>1-2家门诊/业务线试点</div>
+        <div class="phase"><div class="p-t">9月</div>收集数据迭代参数</div>
+        <div class="phase now"><div class="p-t">10-12月（当前节点）</div>全量上线并同步项目制责任书签署</div>
+      </div>
+      <div class="exp"><b>预期：</b>激励覆盖核心业务线100%、项目交付准时率≥80%、薪酬包ROI≥1:3.5。</div>
+    </div>
+
+    <h3 style="font-size:18px;font-weight:800;margin:18px 0 10px">3.3 10月里程碑对照（原图节点：全量推广与弹性编制落地）</h3>
+    <div class="legend">
+      <span>判定图例：</span>
+      <span class="badge b-green">基本达成</span>
+      <span class="badge b-amber">推进中 / 部分推进 / 部分达成</span>
+      <span class="badge b-red">滞后 / 未达成</span>
+      <span class="badge b-blue">计划 / 新增</span>
+      <span class="badge b-gray">未提及（待确认）</span>
+    </div>
+    <div class="tbl-wrap">
+      <table style="min-width:760px">
+        <thead>
+          <tr><th scope="col" style="width:36px">#</th><th scope="col">策略要求</th><th scope="col">10月实际（据三份报告）</th><th scope="col" style="width:130px">达成判定</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>识别重复流程并引入自动化（S1 10月）</td><td>月复盘 skill/考勤自动录入/口腔顾问协同/简历解析等已落地；但"重复流程识别"专项报告未形成，多为按需建设</td><td><span class="badge b-amber">部分推进</span></td></tr>
+          <tr><td>2</td><td>关键岗梯队入库与动态汰换（S2 10-12月）</td><td>副总候选人识别 1 名、公益负责人空缺；高校就业处资源新增对接 1 所；系统化工位梯队库未成型</td><td><span class="badge b-amber">部分推进</span></td></tr>
+          <tr><td>3</td><td>激励全量上线并同步项目制责任书（S3 10-12月）</td><td>年度激励方案宣讲办结+自动计算表交付；正式全量上线与项目制责任书签署待 11月</td><td><span class="badge b-amber">推进中</span></td></tr>
+          <tr><td>4</td><td>OGSM 全策略协同看板 / 全员录入</td><td>OGSM 全员录入 10.30 完成（6部门）；人事/运营数字舱上线并实时更新</td><td><span class="badge b-green">基本达成</span></td></tr>
+          <tr><td>5</td><td>离职预测模型正式启用（含考勤因子）</td><td>模型推翻式重构+新增考勤因子，10.20 交付钟总确认，11月起正式启用</td><td><span class="badge b-green">基本达成（模型侧）</span></td></tr>
+          <tr><td>6</td><td>核心岗招聘（关键岗到岗率≥90%）</td><td>副总匹配度不高（仅识别1名）、公益负责人无合适人选；核心岗招聘未达成</td><td><span class="badge b-red">滞后 / 未达成</span></td></tr>
+          <tr><td>7</td><td>全业务线 RACI 界定（11-12月准备）</td><td>10月未启动，属下阶段节点</td><td><span class="badge b-gray">未提及（下阶段）</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 四、成员贡献盘点 ================= -->
+  <section class="sec" id="sec-4">
+    <div class="sec-head"><span class="sec-no">四</span><h2>成员贡献盘点</h2></div>
+    <p class="lead">三位成员的定位、关键成果、量化亮点与自述待改进，均取自个人10月复盘报告原文。</p>
+
+    <!-- 钟喻 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">钟</div>
+        <div>
+          <div class="m-name">钟喻</div>
+          <div class="m-role"><span class="r-chip">部门负责人</span>统筹「飞书板块深化+数字化价值产出+核心团队稳定」三线；完成数字舱/驾驶舱从 0 到上线、闭环管控系统搭建、健康顾问跨部门协同与高管招聘评估准备</div>
+        </div>
+      </div>
+      <div class="m-body">
+        <div>
+          <div class="m-h">关键成果（10月）</div>
+          <ol class="ach">
+            <li>日周月报升级版（跨部门协同）正式上线，配套复盘交流与宣讲资料（<span class="dt">10.10/10.13</span>）</li>
+            <li>人力数字舱测试系统上线、数据实时更新（<span class="dt">10.17</span>，待迁移正式飞书）</li>
+            <li>增长作战地图数字舱重构 DEMO 上线（<span class="dt">10.21</span>）+ 二次优化交文杰修正 2.0（<span class="dt">10.23</span>，70%）</li>
+            <li>闭环管控系统搭建（日报→周总结→月复盘→规划→进度管控链路）（<span class="dt">10.27/10.28</span>，50%）</li>
+            <li>健康顾问跨部门协同系统上线，覆盖电商/市场（<span class="dt">10.17</span>，100%）</li>
+            <li>年度激励方案宣讲会办结，交各部门负责人二次宣讲（<span class="dt">10.10</span>）</li>
+            <li>高管（副总）面试评估记分表制作完成并打印入库，待面试使用（<span class="dt">10.29/10.30</span>）</li>
+            <li>双十一前人员安排全部完成与沟通（<span class="dt">10.15/10.16</span>，100%）</li>
+            <li>OGSM 对齐会 + 月复盘会常态化运行（<span class="dt">10.09</span>，100%）</li>
+            <li>大模型（阿里云）接入数字舱可行性验证启动（<span class="dt">10.20</span>，10%推进中）</li>
+          </ol>
+        </div>
+        <div>
+          <div class="side-block">
+            <div class="m-h">量化亮点</div>
+            <div class="stat"><span>日报填报</span><b>20天</b></div>
+            <div class="stat"><span>数字舱/驾驶舱</span><b>0→上线</b></div>
+            <div class="stat"><span>闭环管控系统</span><b>搭建启动</b></div>
+            <div class="stat"><span>健康顾问协同</span><b>系统上线</b></div>
+            <div class="stat"><span>OGSM/复盘会</span><b>100%常态化</b></div>
+          </div>
+          <div class="side-block">
+            <div class="m-h">待改进（自述）</div>
+            <ul class="impr">
+              <li>多项数字舱仍在进行中（作战地图70%/人力90%/闭环50%/大模型10%），需加快正式飞书迁移与数据校验</li>
+              <li>培训体系待完善：健康顾问培训暂未引进培训系统</li>
+              <li>离职预测模块需强化（公益主管离职暴露试错成本核查不足）</li>
+              <li>数据真实性校验与激励联动机制尚未完成</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 李文杰 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">李</div>
+        <div>
+          <div class="m-name">李文杰</div>
+          <div class="m-role"><span class="r-chip">数字化/系统岗</span>主责绩效体系 AI 化收官、增长作战地图双大屏与人事数据大屏交付、离职预测模型重构与一批自研工具落地，是部门数字化转型的主要技术执行人</div>
+        </div>
+      </div>
+      <div class="m-body">
+        <div>
+          <div class="m-h">关键成果（10月）</div>
+          <ol class="ach">
+            <li>9月 AI 绩效打分完成各部门评分，全员结果无错误（<span class="dt">10.08–10.10</span>）；推进人工复审（仅仓库未完成，已反馈钟总）</li>
+            <li>全员 10月 OGSM 目标拆解录入：人事/总助/电商/供应链/仓库/财务 10.30 全部完成并补录绩效系统</li>
+            <li>增长作战地图可视化系统：管理版+大屏版 2 看板开发（<span class="dt">10.17</span>），向徐总展示（<span class="dt">10.22</span>），周月分屏制作提交审核（<span class="dt">10.29</span>）</li>
+            <li>离职预测模型推翻旧模型重构、新增考勤因子，精准度更高（<span class="dt">10.13–10.20</span>），11月启用</li>
+            <li>人事数据大屏搭建完成，飞书数据源实时更新+卡片点击跳转（<span class="dt">10.17–10.21</span>）</li>
+            <li>简历解析与人才匹配 skill、考勤自动录入功能开发完成交付佩琳（<span class="dt">10.20/10.21</span>）</li>
+            <li>口腔健康顾问协同流程表单+自动化搭建闭环，交付并同步 SOP（<span class="dt">10.16–10.22</span>）</li>
+            <li>年度激励方案自动计算表框架搭建交付钟总（<span class="dt">10.22–10.27</span>）</li>
+            <li>月复盘 skill 优化更新（<span class="dt">10.13/10.27–10.30</span>）；周复盘自动化全月无异常</li>
+            <li>公司官网备案信息更新提交审核（<span class="dt">10.30</span>）；WorkBuddy 企业版续约与返佣收尾（<span class="dt">10.19/10.22</span>）</li>
+          </ol>
+        </div>
+        <div>
+          <div class="side-block">
+            <div class="m-h">量化亮点</div>
+            <div class="stat"><span>日报填报</span><b>20天</b></div>
+            <div class="stat"><span>双大屏交付</span><b>8天（10.09→10.17）</b></div>
+            <div class="stat"><span>9月AI打分</span><b>全员无错误</b></div>
+            <div class="stat"><span>自研工具交付</span><b>4项+</b></div>
+            <div class="stat"><span>模块交付口径</span><b>11+</b></div>
+          </div>
+          <div class="side-block">
+            <div class="m-h">待改进（自述）</div>
+            <ul class="impr">
+              <li>9月 AI 绩效人工复审仓库部门部分目标未完成（已反馈钟总）</li>
+              <li>工作复盘报告板块内嵌绩效系统未成功，临时改用按钮打开方案，下周统一测试</li>
+              <li>官网备案过期 + 阿里云信息待更新（11.02 前必须完成）</li>
+              <li>月复盘 skill 自动上传飞书表格功能仍在完善（截止 11.03）</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 邹佩琳 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">邹</div>
+        <div>
+          <div class="m-name">邹佩琳</div>
+          <div class="m-role"><span class="r-chip">人事岗</span>主责招聘配置、考勤绩效月度结案、员工全周期管理（入离转调）与行政后勤/组织活动保障，是部门月度运营闭环的主要执行人</div>
+        </div>
+      </div>
+      <div class="m-body">
+        <div>
+          <div class="m-h">关键成果（10月）</div>
+          <ol class="ach">
+            <li>9月考勤汇总→上传流程→结案、9月绩效填写→汇总→全员结案，10.12 前如期完成</li>
+            <li>新员工全流程闭环：口腔健康顾问入职办理（<span class="dt">10.08</span>）、合同拟定签订（<span class="dt">10.10–10.15</span>）、资料核查归档</li>
+            <li>OGSM 目标与作战地图、打分规则、指标衡量对应关系核对按期完成（<span class="dt">10.14–10.15</span>）</li>
+            <li>离职手续与账号处理：公益负责人离职手续办理及沟通（<span class="dt">10.22</span>），离职人员企微及飞书账号处理（<span class="dt">10.23</span>）</li>
+            <li>10月生日会筹办并举办（<span class="dt">10.13–10.29</span>）；公益进校/医疗知识/口腔专项等培训组织参与（<span class="dt">10.16–10.24</span>）</li>
+            <li>招聘平台全月维护，简历处理逐日留痕（<span class="dt">10.20–10.30</span> 单日 5/14/11/13/16/18 份）；高校就业处资源新增对接 1 所（<span class="dt">10.22</span>）</li>
+            <li>系统数据运维：员工档案/绩效/招聘三系统更新维护（<span class="dt">10.23</span>）；导入 WorkBuddy 新技能用于每月初飞书考勤看板同步（<span class="dt">10.21</span>）</li>
+            <li>行政保障：物业停车码注册（<span class="dt">10.12</span>）、双十一预热协助（<span class="dt">10.20</span>）、停电居家办公安排通知（<span class="dt">10.21–10.22</span>）、办公室局部漏水处理（<span class="dt">10.30</span>）</li>
+          </ol>
+        </div>
+        <div>
+          <div class="side-block">
+            <div class="m-h">量化亮点</div>
+            <div class="stat"><span>日报填报</span><b>17天（19条）</b></div>
+            <div class="stat"><span>9月考勤绩效</span><b>10.12前结案</b></div>
+            <div class="stat"><span>简历处理量</span><b>单日最高18份</b></div>
+            <div class="stat"><span>招聘简历来源</span><b>6个日期留痕</b></div>
+            <div class="stat"><span>外部资源</span><b>高校1所对接</b></div>
+          </div>
+          <div class="side-block">
+            <div class="m-h">待改进（自述）</div>
+            <ul class="impr">
+              <li>核心岗位招聘未达成：副总匹配度不高、公益负责人暂无合适人选</li>
+              <li>招聘平台 AI 智能体主动邀约与匹配效果不理想，关键词需优化</li>
+              <li>简历转化偏低，多日简历未过初筛</li>
+              <li>工作清单 26 项中 18 项仍为「进行中」（岗位说明书/招聘副总截止未更新）</li>
+              <li>全月 19 条日报仅 10.14 一条关联 OGSM；难题/突发/跨团队依赖三字段全月 0 填报</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 五、共性问题与根因 ================= -->
+  <section class="sec" id="sec-5">
+    <div class="sec-head"><span class="sec-no">五</span><h2>共性问题与根因</h2></div>
+    <p class="lead">五条共性问题均标注涉及人与报告依据，未作推定归因。</p>
+
+    <div class="prob">
+      <div class="prob-h"><span class="prob-no">1</span><span class="t">日报关键字段空置、信息密度不均、目标挂钩率低</span><span class="who">涉及：钟喻、邹佩琳</span></div>
+      <p>钟喻10月「难题」字段未填报（突发从「突发工作情况」提炼2项：双十一/停电），「明天工作计划/AI提效」字段未填写；邹佩琳全月19条日报仅 10.14 一条关联 OGSM 目标，难题/突发/跨团队依赖三字段全月 0 填报。管理层对问题与计划的可视性不足，延续 9月问题。</p>
+    </div>
+    <div class="prob">
+      <div class="prob-h"><span class="prob-no">2</span><span class="t">核心岗招聘未达成、简历转化偏低</span><span class="who">涉及：钟喻、邹佩琳</span></div>
+      <p>副总 10.22 仅识别 1 名候选人且匹配度待评估；公益负责人离职后重新搜索暂无合适人选；邹佩琳多日简历（14/11份）均未过初筛、主动搜索18份未回复，招聘平台 AI 智能体邀约效果不理想。关键岗到岗率≥90% 当月未达成。</p>
+    </div>
+    <div class="prob">
+      <div class="prob-h"><span class="prob-no">3</span><span class="t">多处交付停留「测试/迭代/推进中」状态</span><span class="who">涉及：三人</span></div>
+      <p>钟喻：人力数字舱待迁移正式飞书、作战地图70%、闭环系统50%、大模型接入10%；李文杰：作战地图/人事大屏二版优化中、月复盘 skill 上传功能完善中（11.03截止）、复盘报告内嵌绩效系统未成功；邹佩琳：岗位说明书/系统数据持续完善。从上线到正式运行仍有距离。</p>
+    </div>
+    <div class="prob">
+      <div class="prob-h"><span class="prob-no">4</span><span class="t">数据真实性校验与激励联动机制未完成</span><span class="who">涉及：钟喻、李文杰</span></div>
+      <p>钟喻自述「数据真实性校验与激励联动机制尚未完成（10.23 仍在研讨）」；年度激励自动计算表已交付框架但待数据完整后生效。激励全量上线与数据校验闭环是 11月必须收口项。</p>
+    </div>
+    <div class="prob">
+      <div class="prob-h"><span class="prob-no">5</span><span class="t">官网合规与系统收口风险</span><span class="who">涉及：李文杰</span></div>
+      <p>官网备案信息过期需更新（10.30 提交审核中）；阿里云信息更新需徐总手机验证码、11.02 前必须完成否则影响官网打开；9月 AI 绩效人工复审仓库部门部分目标未完成。合规与复审收口时效紧。</p>
+    </div>
+  </section>
+
+  <!-- ================= 六、风险清单与应对 ================= -->
+  <section class="sec" id="sec-6">
+    <div class="sec-head"><span class="sec-no">六</span><h2>风险清单与应对</h2></div>
+    <p class="lead">七项部门级风险按影响排序，每项附事实依据与11月应对（L3 闭环：回应10月未闭环项）。</p>
+    <div class="legend">
+      <span>等级图例：</span>
+      <span class="badge b-red">高</span>
+      <span class="badge b-amber">中高</span>
+      <span class="badge b-blue">中</span>
+      <span class="badge b-gray">中低</span>
+    </div>
+    <div class="tbl-wrap">
+      <table style="min-width:880px">
+        <thead>
+          <tr><th scope="col" style="width:32px">#</th><th scope="col" style="width:200px">风险</th><th scope="col" style="width:64px">等级</th><th scope="col">事实依据</th><th scope="col" style="width:250px">11月应对</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><b>核心岗招聘受阻</b>：副总匹配度不高、公益负责人空缺</td><td><span class="badge b-red">高</span></td><td>10月副总仅识别1名候选人（匹配度待评估）；公益负责人重新搜索暂无合适人选；AI智能体邀约效果差</td><td>加大主动搜寻+优化AI关键词重新发起邀约；对接高校就业处等外部资源；纳入「关键岗梯队入库」人才库建设</td></tr>
+          <tr><td>2</td><td><b>数字舱正式飞书迁移滞后</b>，多处停留测试/迭代</td><td><span class="badge b-amber">中高</span></td><td>人力数字舱待迁移正式飞书；作战地图70%/闭环系统50%/大模型10%</td><td>11月完成迁移+数据真实性校验；作战地图/闭环系统迭代至正式运行；大模型接入落地推进</td></tr>
+          <tr><td>3</td><td><b>官网合规时效风险</b>：备案过期+阿里云待更新</td><td><span class="badge b-red">高</span></td><td>官网备案10.30提交审核中；阿里云信息需徐总手机验证码、11.02前必须完成否则影响官网打开</td><td>11.02前完成阿里云信息更新并跟进备案审核，保障官网正常访问（双保险）</td></tr>
+          <tr><td>4</td><td><b>10月绩效评分时效与复审缺口</b></td><td><span class="badge b-amber">中高</span></td><td>计划11.5前全员完成绩效数据收集表填写、11.8完成10月评分；9月复审仓库部门未完成</td><td>李文杰收官评分+启动11月OGSM拆解；邹佩琳跟进回收；仓库复审缺口升级钟总闭环</td></tr>
+          <tr><td>5</td><td><b>数据真实性校验与激励联动缺失</b>，影响激励公平</td><td><span class="badge b-blue">中</span></td><td>钟喻自述10.23仍在研讨；激励自动计算表待数据完整生效</td><td>11月落地数据校验与激励联动机制；完成激励全量上线与项目制责任书签署</td></tr>
+          <tr><td>6</td><td><b>离职预测正式运行试错成本核查不足</b></td><td><span class="badge b-blue">中</span></td><td>公益项目主管离职暴露试错成本核查不足（钟喻自述）</td><td>11月离职预测新模型正式运行并强化试错成本核查；覆盖核心岗位保留观察</td></tr>
+          <tr><td>7</td><td><b>日报关键字段空置</b>，管理层可视性不足</td><td><span class="badge b-gray">中低</span></td><td>钟喻三字段未填、邹佩琳仅10.14挂目标、三字段全月0填报</td><td>结合月复盘 skill 全员推广，将「难题/计划/AI提效」设为必填项并自动提醒</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 七、11月规划总思路 ================= -->
+  <section class="sec" id="sec-7">
+    <div class="sec-head"><span class="sec-no">七</span><h2>11月规划总思路</h2></div>
+    <p class="lead">11月 OGSM 里程碑节点为「全量上线收官与 RACI 界定启动」，部门工作主线由此展开，并强制回应10月未闭环项（L3 闭环）。</p>
+
+    <div class="theme">
+      <div class="t-label">11月OGSM里程碑（原图节点推进）</div>
+      <div class="t-main">全量上线收官 · RACI界定启动</div>
+      <div class="t-sub">部门主题句：<b>从上线走向正式运行、从机制走向挂钩绩效</b></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div class="m-h">三条策略线11月节点（承接3.2）</div>
+        <ul class="impr" style="list-style:none">
+          <li><b>S1 数字流程化：</b>11-12月完成全业务线 RACI 界定并挂钩绩效；10月已识别的重复流程固化为自动化规则</li>
+          <li><b>S2 关键人才：</b>10-12月完成梯队入库与动态汰换，核心岗招聘转化（副总/公益负责人）并设保留观察对照「关键岗6个月留存≥85%」</li>
+          <li><b>S3 弹性激励：</b>10-12月激励全量上线并同步项目制责任书签署，完成数据校验与激励联动闭环</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="m-h">10月遗留转入11月的事项（L3 闭环）</div>
+        <ul class="impr" style="list-style:none">
+          <li>人力/运营数字舱正式飞书迁移 + 数据真实性校验与激励联动落地</li>
+          <li>核心岗招聘转化：副总面试选拔、公益负责人补位、运营助理/公益项目主管融入</li>
+          <li>官网合规双保险：阿里云信息更新（11.02）+ 备案审核跟进</li>
+          <li>10月绩效评分收官（11.5填表 / 11.8评分）+ 仓库复审闭环</li>
+          <li>月复盘 skill 全员推广 + 周/月度大屏正式运营</li>
+          <li>离职预测新模型正式运行 + 试错成本核查强化</li>
+          <li>岗位说明书终版定稿签字 + 健康顾问培训系统引入</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 八、11月部门重点任务 ================= -->
+  <section class="sec" id="sec-8">
+    <div class="sec-head"><span class="sec-no">八</span><h2>11月部门重点任务</h2></div>
+    <p class="lead">八项重点任务含交付物建议、责任建议与风险预控，并强制承接10月未闭环项（L3 闭环）。责任建议中的角色按原图口径列示。</p>
+    <div class="tbl-wrap">
+      <table style="min-width:900px">
+        <thead>
+          <tr><th scope="col" style="width:32px">#</th><th scope="col" style="width:150px">任务</th><th scope="col">交付物建议</th><th scope="col" style="width:170px">责任建议</th><th scope="col" style="width:230px">风险预控</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td><b>数字舱正式飞书迁移 + 数据校验激励联动</b><br><span class="chip c-risk">承接10月未闭环</span></td><td>正式飞书版人力/运营数字舱；数据真实性校验规则文档；激励联动计算闭环验证报告</td><td>钟喻统筹，李文杰技术交付</td><td>迁移期设回滚方案；数据错误率维持&lt;1%；校验与激励联动11月内闭环</td></tr>
+          <tr><td>2</td><td><b>核心岗招聘转化</b><br><span class="chip c-risk">承接风险①</span></td><td>副总面试选拔记录与录用；公益负责人补位到岗；运营助理/公益项目主管90天融入跟踪表</td><td>钟喻+邹佩琳，用人部门参与</td><td>加大主动搜寻+优化AI关键词；对接高校等资源；临时编制绿色通道</td></tr>
+          <tr><td>3</td><td><b>10月绩效评分收官与11月OGSM拆解</b><br><span class="chip c-risk">承接风险④</span></td><td>10月绩效评分结果（11.8前）；仓库复审闭环；11月OGSM目标拆解录入台账</td><td>李文杰+邹佩琳，钟喻督办</td><td>11.5前全员填表；仓库缺口升级钟总；评分偏差超10%启动干预</td></tr>
+          <tr><td>4</td><td><b>官网合规双保险</b><br><span class="chip c-risk">承接风险③</span></td><td>阿里云信息更新完成凭证；官网备案审核通过截图；官网可访问巡检记录</td><td>李文杰</td><td>11.02前完成阿里云更新（徐总手机验证码）；同步跟进备案审核</td></tr>
+          <tr><td>5</td><td><b>月复盘 skill 全员推广 + 周/月大屏运营</b><br><span class="chip c-risk">承接风险⑦</span></td><td>月复盘 skill 自动上传飞书功能（11.3）；全员培训会记录；作战地图周/月大屏最终版（11.9）+ 周度预警机制</td><td>李文杰</td><td>设「难题/计划/AI提效」必填+自动提醒；大屏按徐总需求二版迭代</td></tr>
+          <tr><td>6</td><td><b>离职预测新模型正式运行 + 试错成本核查</b><br><span class="chip c-risk">承接风险⑥</span></td><td>11月起新模型（含考勤因子）月报；试错成本核查清单与核心岗保留观察表</td><td>钟喻+李文杰</td><td>公益主管离职复盘固化核查动作；覆盖核心岗位</td></tr>
+          <tr><td>7</td><td><b>岗位说明书终版定稿签字 + 档案合规维护</b><br><span class="chip c-risk">承接10月滞后</span></td><td>岗位说明书终版定稿+签字台账；员工档案合规维护100%核查表</td><td>邹佩琳</td><td>11月第一周完成确认闭环；档案整理按月推进</td></tr>
+          <tr><td>8</td><td><b>健康顾问培训复盘 + 培训系统引入 + 核心人才关怀</b><br><span class="chip c-risk">承接10月未闭环</span></td><td>健康顾问培训复盘报告；培训系统引入方案；核心人才关怀追踪月度表</td><td>钟喻</td><td>补培训系统短板；关怀机制常态化运行</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ================= 九、个人11月重点 ================= -->
+  <section class="sec" id="sec-9">
+    <div class="sec-head"><span class="sec-no">九</span><h2>个人11月重点</h2></div>
+    <p class="lead">按「部门任务承接」视角组织：每条个人重点标注其承接的部门任务或风险应对，便于对齐分工（L3 闭环）。</p>
+    <div class="chip-legend">
+      <b>承接标记说明：</b><span class="chip c-task">任务①–⑧</span>对应第八节「11月部门重点任务」条目编号；<span class="chip c-risk">风险①–⑦</span>对应第六节「风险清单与应对」条目编号；<span class="chip c-ops">运营保障 / 领先指标</span>为部门日常运营与过程管控跟踪事项。承接标记为汇编时的对应关系，供分工参考，不改变个人报告原文表述。
+    </div>
+
+    <!-- 钟喻 11月 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">钟</div>
+        <div>
+          <div class="m-name">钟喻</div>
+          <div class="m-role"><span class="r-chip">部门负责人</span>11月重点：7项</div>
+        </div>
+      </div>
+      <div>
+        <ol class="ach">
+          <li>完成人力/运营数字舱向正式飞书系统迁移，推进数据真实性校验与激励联动机制落地　<span class="chip c-task">任务①</span></li>
+          <li>推进增长作战地图数字舱、闭环管控系统等迭代至正式运行（含过程管控模块）　<span class="chip c-task">任务①</span></li>
+          <li>完成副总（高管）面试选拔及核心岗位招聘达成率≥95%（公益项目主管+运营助理到岗融入）　<span class="chip c-task">任务②</span><span class="chip c-risk">风险①应对</span></li>
+          <li>健康顾问培训复盘并引进培训系统；持续推进健康顾问扎根计划与跨部门协同闭环　<span class="chip c-task">任务⑧</span></li>
+          <li>离职预测模块正式运行并强化试错成本核查　<span class="chip c-task">任务⑥</span><span class="chip c-risk">风险⑥应对</span></li>
+          <li>部门规划路线重构定稿，保障 Q4 工作推进；推进大模型（阿里云）接入数字舱落地　<span class="chip c-ops">领先指标·数字化</span></li>
+          <li>双十一人员安排落地跟进；常态化核心人才关怀追踪机制　<span class="chip c-ops">运营保障</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 李文杰 11月 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">李</div>
+        <div>
+          <div class="m-name">李文杰</div>
+          <div class="m-role"><span class="r-chip">数字化/系统岗</span>11月重点：7项</div>
+        </div>
+      </div>
+      <div>
+        <ol class="ach">
+          <li>10月绩效评分收官：推进全员 11.5 前完成绩效数据收集表填写，11.8 完成 10月评分；启动 11月 OGSM 目标拆解录入　<span class="chip c-task">任务③</span><span class="chip c-risk">风险④应对</span></li>
+          <li>官网合规双保险：11.2 前完成阿里云信息更新（徐总手机验证码）并跟进官网备案信息更新审核　<span class="chip c-task">任务④</span><span class="chip c-risk">风险③应对</span></li>
+          <li>月复盘 skill 全员推广：完成自动上传飞书表格功能（11.3截止），通知全体并召开会议说明使用方式　<span class="chip c-task">任务⑤</span><span class="chip c-risk">风险⑦应对</span></li>
+          <li>作战地图周/月度大屏运营：完成最终版优化（11.9截止），每周一组织市场/电商填报上周数据，实现周度数据预警　<span class="chip c-task">任务⑤</span></li>
+          <li>工作复盘管控报表：完成初版提交钟总审核（11.9截止），与每周周复盘同步发送；复盘报告以按钮方式嵌入绩效系统并统一测试　<span class="chip c-task">任务⑤</span><span class="chip c-ops">运营保障</span></li>
+          <li>新离职预测模型启用：11月起使用新模型（含考勤因子）开展离职预测工作　<span class="chip c-task">任务⑥</span></li>
+          <li>大屏第二版迭代：根据徐总需求优化作战地图大屏与人事数据大屏第二版　<span class="chip c-ops">领先指标·数字化</span></li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- 邹佩琳 11月 -->
+    <div class="member">
+      <div class="m-head">
+        <div class="avatar">邹</div>
+        <div>
+          <div class="m-name">邹佩琳</div>
+          <div class="m-role"><span class="r-chip">人事岗</span>11月重点：8项</div>
+        </div>
+      </div>
+      <div>
+        <ol class="ach">
+          <li>核心岗位招聘提速：推进副总、公益负责人（公益项目主管）等关键岗位，加大主动搜索；优化招聘平台 AI 智能体核心关键词，重新发起匹配与智能邀约　<span class="chip c-task">任务②</span><span class="chip c-risk">风险①应对</span></li>
+          <li>处理 10月考勤、跟进 10月绩效：10月考勤收口；10月绩效通知周一发送至各部门负责人并跟进回收　<span class="chip c-task">任务③</span></li>
+          <li>档案整理：按清单推进员工档案整理与合规维护　<span class="chip c-ops">运营保障</span></li>
+          <li>岗位说明书终版定稿并组织签字：完成与业务部门沟通确认后定稿，组织签字闭环　<span class="chip c-task">任务⑦</span></li>
+          <li>劳动合同续签：推进到期劳动合同续签工作　<span class="chip c-ops">运营保障</span></li>
+          <li>配合协助绩效等系统的相关工作：跟进绩效系统相关事项　<span class="chip c-ops">运营保障</span></li>
+          <li>表格字段与看板同步：跟进制表内空白字段；每月初运用 WorkBuddy 技能完成飞书考勤看板同步　<span class="chip c-task">任务⑤</span><span class="chip c-ops">运营保障</span></li>
+          <li>行政与其他待办：持续跟进办公室漏水物业处理进度；客服排班与驻店排班周期维护　<span class="chip c-ops">运营保障</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 十、过程管控与保障机制 ================= -->
+  <section class="sec" id="sec-10">
+    <div class="sec-head"><span class="sec-no">十</span><h2>过程管控与保障机制</h2></div>
+    <p class="lead">三层指标体系配套数据预警、联合复盘、会议机制与MVP原则，保障11月全量上线收官与 RACI 界定启动。</p>
+
+    <div class="layer-grid">
+      <div class="layer">
+        <h3>领先指标</h3>
+        <div class="l-sub">按月复盘，偏差超10%启动干预</div>
+        <ul>
+          <li>招聘完成率</li>
+          <li>培训认证通过率</li>
+          <li>自动化配置进度</li>
+          <li>项目立项数</li>
+          <li>RACI签署覆盖率</li>
+        </ul>
+      </div>
+      <div class="layer l2">
+        <h3>同步指标</h3>
+        <div class="l-sub">双周对齐业务数据</div>
+        <ul>
+          <li>门诊合作数</li>
+          <li>新增家庭客户数</li>
+          <li>渠道绑定医生数</li>
+          <li>内部KOC孵化数</li>
+          <li>创新建议采纳数</li>
+        </ul>
+      </div>
+      <div class="layer l3">
+        <h3>滞后指标</h3>
+        <div class="l-sub">季度审计</div>
+        <ul>
+          <li>销售人效</li>
+          <li>员工满意度≥85</li>
+          <li>战略对齐度评估</li>
+          <li>数字流程错误率&lt;1%</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="mech mt">
+      <div class="card">
+        <h3>数据预警</h3>
+        <p>核心指标连续两月未达阈值 → 自动触发策略参数调优（激励比例、培训频次、流程节点精简）。</p>
+      </div>
+      <div class="card">
+        <h3>联合复盘</h3>
+        <p>HR-业务联合复盘会（每月最后一周）；PDCA循环；OGSM矩阵导入公司战略看板，按「策略S→月度M」拆解到责任人。</p>
+      </div>
+      <div class="card">
+        <h3>会议机制</h3>
+        <p>每月经营会议预留15分钟HR模块专报，仅展示领先指标进度与红黄绿灯状态。</p>
+      </div>
+      <div class="card">
+        <h3>MVP先行</h3>
+        <p>所有策略动作配套最小可行性版本先行验证，跑通后再全量推广。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 尾注 ================= -->
+  <section class="sec" id="sec-notes">
+    <div class="sec-head"><span class="sec-no">注</span><h2>尾注：数据来源与口径说明</h2></div>
+    <div class="card notes">
+      <ol>
+        <li>
+          <b>数据来源：</b>本报告数据部分来自三位成员2026年10月个人复盘报告（钟喻、邹佩琳、李文杰）；策略部分来自《2026年HRD OGSM战略思维导图》。本报告由HR专家团队汇编：主理人钟慧心调度，hr-data-analyst（苏勤思）负责数据分析，hr-knowledge-curator（管墨林）负责策略提取，hr-page-architect（高远图）负责页面架构。
+          <br><br>
+          <b>飞书日报通道（本部门统一数据通道）：</b>三位成员10月日报已上链至飞书日报库，作为本部门复盘与月度取数的统一数据通道。
+          <ul>
+            <li><b>访问链接：</b><a href="https://oralvictor.feishu.cn/base/IRRLbqI0xarLrXs1jRDcdVJ5ndg?table=tblyCv1ZnAyDE951&view=vewLqNb3kt" target="_blank" rel="noopener">飞书日报·人事行政部10月月度视图</a></li>
+            <li><b>三段标识：</b>base_token=<code>IRRLbqI0xarLrXs1jRDcdVJ5ndg</code>；table_id=<code>tblyCv1ZnAyDE951</code>；view_id=<code>vewLqNb3kt</code>（2026年10月月度视图）</li>
+            <li>
+              <b>重要提醒：</b>取数请使用「<b>2026年10月月度视图（vewLqNb3kt）</b>」，<b>不要使用</b>「表格视图（vewPqctBKK）」——
+              后者会隐藏 4 个关键字段（日常工作情况 / 难题与策略 / AI提效点 / 填写时间），导致复盘漏抓。
+            </li>
+            <li>
+              <b>字段说明（经苏勤思确认的 20 字段）：</b>上报日期 / 上报人 / 所属部门 / 部门负责人 / 报告类型 / 月份 / 日报ID / 日常工作情况 / 关键动作 / 难题与策略 / 明天工作计划 / AI提效点 / 突发情况 / 跨团队依赖 / 跨部门依赖 / 关联目标 / 关联其他工作考核 / 工作清单 / 填写时间 / 查看详情。
+            </li>
+            <li><b>维护人：</b>数据通道归档由管墨林（hr-knowledge-curator）负责，使用规范详见其《飞书日报通道归档 + 月度复盘数据源使用规范》。</li>
+          </ul>
+        </li>
+        <li>
+          <b>字段缺失说明（如实保留，未作推定填充）：</b>
+          <ul>
+            <li>钟喻10月「难题」字段未填报，相关问题系从「突发工作情况」提炼（双十一安排、停电2项）；「明天工作计划/AI提效」字段亦未填写。</li>
+            <li>邹佩琳10月「难题/突发/跨团队依赖」三字段全月 0 填报；全月19条日报仅 10.14 一条关联 OGSM 目标（与9月一致，目标挂钩率低）；李文杰为三人中填报并闭环突发事项者（口腔流程/官网备案/阿里云3项）。</li>
+            <li>系统/工具模块上线数量按李文杰口径 11+ 列示；其余量化数字均取自三份10月个人报告原文。</li>
+            <li>10月绩效评分（11.5填表/11.8评分）、官网合规（11.02前）等为计划节点，非10月已达成数据，正文与风险表已分别标注。</li>
+            <li>任务书未记载的事项，正文标注「报告未提及」或「待确认」，未作推定填充。</li>
+            <li>
+              <b>历史修正（v2，来自9月复盘档，仍适用于本月）：</b>原9月报告中"钟喻9月「明天工作计划」字段全部为空"等表述经飞书日报原始数据复核不属实（钟喻 21/21、邹佩琳 17/21 实际有内容）。本部门10月复盘档直接采用 Feishu 原始字段（按《10月实时取数模板》C1 字段映射）而非报告AI提炼版，避免漏抓。
+            </li>
+          </ul>
+        </li>
+        <li>
+          <b>OGSM原图待确认项（据原文存疑标注）：</b>①「机制治与自动流转」疑为「机制自治」笔误；②「高共识不足时」疑为「（若）高层共识不足时」；③9月节点「情景通关」疑为「情景式通关/实战通关」简写。另：原图右下角标注「本内容由AI生成」，策略内容来源据此注明。
+        </li>
+        <li>
+          <b>称谓与引用口径：</b>称谓按原文保留（「钟总/徐总」并存，不作解读）；张副总离职原因按原文引用：「暂时无法改变公司现有现象」（9月复盘档已记载，10月公益项目主管离职另行验证离职预测模块有效性）。
+        </li>
+        <li>
+          <b>生成说明：</b>本内容由AI生成；本报告由HR专家团队汇编。本文档为内部资料，请勿外传。
+        </li>
+      </ol>
+    </div>
+  </section>
+
+</main>
+
+<!-- ================= 页脚 ================= -->
+<footer>
+  <div class="wrap foot">
+    <div>
+      <div class="f-title">人事行政部 · 2026年10月部门复盘暨11月规划</div>
+      <div>报告周期 2026.10.01–10.31 ｜ 编制日期 2026-11-02 ｜ 编制：HR专家团队</div>
+    </div>
+    <div style="text-align:right">
+      <span class="badge b-blue" style="font-size:13px">内部资料 · 请勿外传</span>
+      <div style="margin-top:4px">本内容由AI生成，由HR专家团队汇编</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
