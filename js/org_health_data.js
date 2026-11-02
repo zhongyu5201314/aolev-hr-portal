@@ -1,10 +1,10 @@
 // 自动生成 by build_hr_modules.py — 模块1 组织架构与编制健康诊断
-// 生成时间: 2026-11-02 11:06
+// 生成时间: 2026-11-02 13:53
 // 只读快照; 数据变更请重跑 build_hr_modules.py
 window.HR_ORG_HEALTH = {
   "label": "组织架构与编制健康诊断",
   "meta": {
-    "generatedAt": "2026-11-02 11:06",
+    "generatedAt": "2026-11-02 13:53",
     "headcountSource": "data/employees.csv (43人, 唯一权威口径)",
     "headcountTotal": 43,
     "quotaSource": "业务核定override(2026-10-30): 编制=实际在册人数(合计43); 飞书部门编制表tbl7db9hYFIrALcA仍空",
@@ -228,373 +228,410 @@ window.HR_ORG_HEALTH = {
     "label": "岗位单点分布",
     "totalPosts": 36,
     "singlePointCount": 32,
-    "keyPostStatus": "待业务标注(是否关键岗位列尚未录入)",
+    "keyPostStatus": "已录入关键岗位白名单(钟喻指定核心岗 8 个单点)",
+    "keyPostCount": 8,
     "rows": [
       {
         "label": "总经理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "徐阳波"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "总经理助理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "马婧"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "电商运营总监",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "黄伟"
-        ]
+        ],
+        "highRisk": true
       },
       {
         "label": "天猫运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "王莉莉"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "视觉设计经理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "韦艺"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "设计",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "揭育榜"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "微信客服",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "王娟"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "用户运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "谢友念"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "数据运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "郭力文"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "用户运营专员",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "姜同融"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "私域内容",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "金凤"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "市场营销负责人",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "刘焕禹"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "品牌运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "何杨锦"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "内容运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "周海肖"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "医疗渠道销售负责人",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "林亮宇"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "公益项目负责人助理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "陈泳珊"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "AI运营",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "余圳锋"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "品牌负责人",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "李亚楠"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "财务经理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "张翠霞"
-        ]
+        ],
+        "highRisk": true
       },
       {
         "label": "出纳",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "王荣荣"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "HRD",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "钟喻"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "HRBP",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "李沛璇"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "行政综合专员",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "王仲锡"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "数据分析",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "李文杰"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "品控主管",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "冯小平"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "副总经理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "林朝辉"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "仓库主管",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": true,
         "members": [
           "林浩发"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "仓库管理员",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "麦少英"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "人事行政专员",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "邹佩琳"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "实习生",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "杨宏"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "运营助理",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "林坚灿"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "口腔健康顾问",
         "count": 1,
         "singlePoint": true,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "陈焕华"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "(未填写岗位)",
         "count": 1,
         "singlePoint": false,
         "isPlaceholder": true,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "张跃峰"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "口腔顾问助理",
         "count": 2,
         "singlePoint": false,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "高迪",
           "徐健斌"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "电商运营助理",
         "count": 3,
         "singlePoint": false,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "陈智宇",
           "李兴长",
           "何小军"
-        ]
+        ],
+        "highRisk": false
       },
       {
         "label": "电商客服",
         "count": 5,
         "singlePoint": false,
         "isPlaceholder": false,
-        "keyPost": null,
+        "keyPost": false,
         "members": [
           "刘淑娥",
           "苏魏魏",
           "岳改霞",
           "...共5人"
-        ]
+        ],
+        "highRisk": false
       }
     ]
   },
@@ -676,7 +713,7 @@ window.HR_ORG_HEALTH = {
     "treeTotal": 43,
     "rosterTotal": 43,
     "extraLevel2Nodes": [],
-    "checkedAt": "2026-11-02 11:06"
+    "checkedAt": "2026-11-02 13:53"
   },
   "headcountTrend": {
     "label": "在编人数趋势(代理口径)",

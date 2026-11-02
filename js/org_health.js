@@ -373,6 +373,7 @@
     var miss = unalloc(D).persons;          // 未分配人员名单（新数据契约 meta.treeUnallocated.persons）
     var cs = csGroup(D);                    // 客服职能实际所在组（电商运营部 › 客服组）
     var sp = D.postSinglePoint || {};
+    var l2 = (sp.rows || []).filter(function (r) { return r.singlePoint && !r.isPlaceholder && r.keyPost; }).length;
     return '' +
       '<div class="kpi">' +
       '<div class="k">在编人数 <span class="badge auth">✅ 权威</span> <span class="lock" title="本页唯一允许称『在编人数』的数字">🔒</span></div>' +
@@ -392,9 +393,9 @@
       (p.showNames ? ' <span class="badge grey dash">' + esc(miss.join(' / ')) + '</span>' : '') + '</div></div>' +
 
       '<div class="kpi is-miss">' +
-      '<div class="k">业务主线单点岗位数（L2） <span class="badge proxy">🟡 代理</span></div>' +
-      '<div class="v todo" style="font-size:28px">待归一校准</div>' +
-      '<div class="nb">L1 结构单点 <b>' + sp.singlePointCount + '</b> 个｜关键岗位白名单未录入</div></div>';
+      '<div class="k">业务主线单点岗位数（L2） <span class="badge auth">✅ 已录入</span></div>' +
+      '<div class="v" style="font-size:28px">' + l2 + '<span class="u">个</span></div>' +
+      '<div class="nb">L1 结构单点 <b>' + sp.singlePointCount + '</b> 个｜核心单点岗 <b>' + l2 + '</b> 个（钟喻指定）</div></div>';
   }
 
   /* ---------- 渲染：编制健康表 ---------- */
@@ -500,23 +501,27 @@
         '<div class="t2">未取到 <code>postSinglePoint.rows</code>，<b>不得</b>把岗位数显示为 0。</div></div>';
     }
     var sp = D.postSinglePoint;
+    var coreRows = (sp.rows || []).filter(function (r) { return r.singlePoint && !r.isPlaceholder && r.keyPost; });
+    var l2 = coreRows.length;
+    var l3rows = coreRows.filter(function (r) { return r.highRisk; });
+    var l3 = l3rows.length;
     var funnel = '<div class="funnel">' +
       '<div class="fstep"><div class="lvl">L1</div><div class="nm">结构单点岗位数</div>' +
       '<div class="vv">' + sp.singlePointCount + '</div>' +
       '<div class="dsc">title 去重后仅 1 人在岗。<b>仅下钻可见</b>，不推预警。</div>' +
       '<div><span class="badge proxy dash">待归一校准</span></div></div>' +
       '<div class="fstep is-main"><div class="lvl">L2 · 主指标</div><div class="nm">业务主线单点岗位数</div>' +
-      '<div class="vv isna">不可用</div>' +
-      '<div class="dsc">需「关键岗位白名单」（S5）落地后才能筛选 —— 当前<b>白名单未录入</b>，故不出数，<b>不以 L1 冒替</b>。</div>' +
-      '<div><span class="badge miss">待业务标注</span></div></div>' +
+      '<div class="vv">' + l2 + '</div>' +
+      '<div class="dsc">= 单点岗位 ∩ 关键岗位白名单（' + l2 + ' 个核心单点岗）。<b>已收敛</b>：从 L1 ' + sp.singlePointCount + ' 降至 ' + l2 + '。</div>' +
+      '<div><span class="badge auth">✅ 已录入</span></div></div>' +
       '<div class="fstep"><div class="lvl">L3</div><div class="nm">高危单点岗位数</div>' +
-      '<div class="vv isna">不可用</div>' +
-      '<div class="dsc">依赖 L2 ∩ 离职风险池（风险模型仅覆盖 ' + riskModelCount() + ' 人，与 ' + D.meta.headcountTotal + ' 人<b>不对齐 ' + Math.abs(D.meta.headcountTotal - riskModelCount()) + ' 人</b>）。</div>' +
-      '<div><span class="badge miss">依赖 L2</span></div></div></div>';
+      '<div class="vv">' + l3 + '</div>' +
+      '<div class="dsc">= L2 ∩ 离职风险池（风险等级 中风险/观察池，低风险不计）。风险模型覆盖 ' + riskModelCount() + ' 人，与在编 ' + D.meta.headcountTotal + ' 人不对齐 ' + Math.abs(D.meta.headcountTotal - riskModelCount()) + ' 人，仅作趋势代理。</div>' +
+      '<div><span class="badge ' + (l3 > 0 ? 'alert' : 'ok') + '">' + (l3 > 0 ? '🔴 需关注' : '✅ 暂无') + '</span></div></div></div>';
 
     var chips = sp.rows.filter(function (r) { return r.singlePoint && !r.isPlaceholder; }).slice(0, 8).map(function (r) {
       var m = (r.members || []).map(function (x) { return p.showNames ? x : maskName(x); }).join('、');
-      return '<span class="post-chip" title="在岗：' + esc(m) + '">' + esc(r.label) +
+      return '<span class="post-chip' + (r.keyPost ? ' key' : '') + '" title="在岗：' + esc(m) + '">' + (r.keyPost ? '🌟 ' : '') + esc(r.label) +
         '<span style="color:var(--oh-muted);font-size:12px">· ' + r.count + ' 人</span></span>';
     }).join('');
     var ghost = sp.rows.filter(function (r) { return r.isPlaceholder; }).map(function (r) {
@@ -527,7 +532,7 @@
       '<div class="post-list">' + chips + ghost + '</div>' +
       '<div class="panel-note">' +
       '🔒 <b>人名仅 HRD / 授权 HRBP 可见</b>；其余角色脱敏为「张**」，且任何细分 <b>N &lt; 5 必须合并或隐藏</b>。' +
-      '岗位「<b>是否关键岗位</b>」列未录入，因此此处所有标记均为<b>预筛候选</b>，用虚线灰标 <span class="badge grey dash">待确认</span>，不得直接标红。</div>' +
+      '核心岗白名单已录入（岗位级，钟喻指定 ' + l2 + ' 个核心单点岗），标🌟者为关键岗位；L3 高危单点（核心岗且风险等级中风险/观察池）见卡片。</div>' +
       '<div class="panel-note warnNote">⚠ <b>title 未标准化</b>（如「设计」vs「视觉设计经理」、「电商运营助理」vs「用户运营专员」），' +
       'L1=' + sp.singlePointCount + ' 属<b>未经归一的原始去重结果，可能高估</b>（全部合并后可能降至 27）。归一映射已获授权（裁决 R2），完成前须常驻「待归一校准」标注。<br>' +
       '⚠ 总经理、HRD 等岗位<b>本来就该只有 1 人</b>：结构单点<b>不等于</b>风险告警，对外统一称「结构单点岗位数」，仅 L3 才推预警（裁决 R7）。</div>';
