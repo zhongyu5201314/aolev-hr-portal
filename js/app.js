@@ -6,6 +6,30 @@
   'use strict';
   const U = global.U;
 
+  /* =========================================================================
+   * HR_ROLE_CONFIG —— 全站唯一的角色权限运行时权威
+   * -------------------------------------------------------------------------
+   * 裁决（2026-10-30 主理人）：数据文件（HR_RISK_BRIEF / HR_ORG_HEALTH）中
+   * 【不得】再声明 role 字段。角色语义只有一处定义，就是这里。
+   * 历史背景：曾出现 HR_ROLE_CONFIG 与 HR_RISK_BRIEF.role 两处恒等声明，
+   * 语义其实不同（前者＝前端权限实施配置，后者＝数据侧角色契约声明），
+   * 但会诱导维护者改一处忘另一处，故裁决收敛为单一权威。
+   *
+   * 字段说明：
+   *   visible   该角色能否进入本页（false → 整屏禁入，不渲染任何数据）
+   *   scope     all = 全量 / own = 仅本部门 / none = 不可见
+   *   showNames 是否展示全名（false → 脱敏为「张**」）
+   *   score     是否可见风险总分
+   *   dims      是否可见六维明细
+   *   evidence  full = 依据原文完整 / reviewed = 已复核去主观版 / onDemand = 需单独授权 / none = 不可见
+   *   advice    是否可见处置建议
+   * ========================================================================= */
+  global.HR_ROLE_CONFIG = {
+    'HR':     { visible: true,  scope: 'all',  showNames: true,  score: true,  dims: true,  evidence: 'full',     advice: true  },
+    '负责人': { visible: true,  scope: 'own',  showNames: false, score: false, dims: false, evidence: 'reviewed', advice: true  },
+    '员工':   { visible: false, scope: 'none', showNames: false, score: false, dims: false, evidence: 'none',     advice: false }
+  };
+
   /* ---------- 脚本懒加载：非首屏模块按需加载，缩小首屏体积 ---------- */
   const _loaded = {};
   function loadScript(src) {
@@ -32,6 +56,8 @@
     if (p0 === 'recruit-system') return ['vendor/echarts.min.js', 'js/recruit_system_data.js', 'js/recruit_system.js'];
     if (p0 === 'comp-system') return ['vendor/echarts.min.js', 'js/comp_system_data.js', 'js/comp_system.js'];
     if (p0 === 'employee-lifecycle') return ['js/employee_lifecycle_data.js', 'js/employee_lifecycle.js'];
+    if (p0 === 'org-health') return ['js/org_health_data.js', 'js/org_health.js'];
+    if (p0 === 'risk-brief') return ['js/risk_brief_data.js', 'js/risk_brief.js'];
     if (p0 === 'training') return ['vendor/echarts.min.js', 'js/training_data.js', 'js/training.js'];
     if (p0 === 'perf') {
       const sub = parts[1] || '';
@@ -59,6 +85,8 @@
     { group: '人力资源板块', items: [
       { path: '/dashboard', icon: '📊', label: '数据看板 · HR概览', hash: '#/dashboard' },
       { path: '/cockpit',  icon: '🖥️', label: '人力数据驾驶舱', hash: '#/cockpit' },
+      { path: '/org-health', icon: '🏛️', label: '组织架构与编制诊断', hash: '#/org-health' },
+      { path: '/risk-brief', icon: '⚠️', label: '员工风险简报', hash: '#/risk-brief' },
       { path: '/recruit', icon: '🧲', label: '招聘·简历初筛', hash: '#/recruit' },
       { path: '/recruit-system', icon: '🎯', label: '招聘体系搭建', hash: '#/recruit-system' },
       { path: '/comp-system', icon: '💰', label: '薪酬体系搭建', hash: '#/comp-system' },
@@ -163,6 +191,8 @@
     else if (parts[0] === 'recruit-system') active = '/recruit-system';
     else if (parts[0] === 'comp-system') active = '/comp-system';
     else if (parts[0] === 'employee-lifecycle') active = '/employee-lifecycle';
+    else if (parts[0] === 'org-health') active = '/org-health';
+    else if (parts[0] === 'risk-brief') active = '/risk-brief';
     else if (parts[0] === 'training') active = '/training';
     else if (parts[0] === 'reports') active = '/reports';
     else if (parts[0] === 'perf') {
@@ -310,6 +340,16 @@
     } else if (parts[0] === 'training') {
       highlightSidebar(parts);
       global.Training.render();
+    } else if (parts[0] === 'org-health') {
+      setBreadcrumb(['人力资源', '组织架构与编制诊断']);
+      highlightSidebar(parts);
+      if (global.OrgHealth && global.OrgHealth.render) global.OrgHealth.render(parts);
+      else view.innerHTML = '<div style="padding:48px;text-align:center;color:#e5484d">⚠️ 组织架构与编制诊断模块未加载</div>';
+    } else if (parts[0] === 'risk-brief') {
+      setBreadcrumb(['人力资源', '员工风险简报']);
+      highlightSidebar(parts);
+      if (global.RiskBrief && global.RiskBrief.render) global.RiskBrief.render(parts);
+      else view.innerHTML = '<div style="padding:48px;text-align:center;color:#e5484d">⚠️ 员工风险简报模块未加载</div>';
     } else if (parts[0] === 'perf') {
       highlightSidebar(parts);
       const sub = parts[1] || '';
