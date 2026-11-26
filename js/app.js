@@ -42,6 +42,7 @@
       return ['vendor/echarts.min.js', 'js/perf_index.js'];
     }
     if (p0 === 'wiki') return ['vendor/marked.min.js', 'js/knowledge.js', 'js/wiki.js'];
+    if (p0 === 'treasury') return ['js/treasury.js'];
     if (p0 === 'reports') return ['vendor/echarts.min.js', 'js/report_data.js', 'js/report_board.js'];
     if (p0 === 'review') return ['js/knowledge.js', 'js/review_board.js'];
     if (p0 === 'ai-pilot') return ['js/knowledge.js', 'js/ai_pilot.js'];
@@ -89,6 +90,7 @@
       { path: '/ai-ops', icon: '📈', label: '数字员工运营', hash: '#/ai-ops' },
     ]},
     { path: '/wiki', icon: '📚', label: '制度知识库', hash: '#/wiki' },
+    { path: '/treasury', icon: '🧰', label: '个人宝典', hash: '#/treasury' },
   ];
 
   function buildSidebar() {
@@ -272,6 +274,9 @@
       } else {
         global.Wiki.renderPortal();
       }
+    } else if (parts[0] === 'treasury') {
+      highlightSidebar(['treasury']);
+      global.Treasury.render();
     } else if (parts[0] === 'reports') {
       highlightSidebar(['reports']);
       global.ReportBoard.render();

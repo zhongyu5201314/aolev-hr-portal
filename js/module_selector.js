@@ -48,6 +48,7 @@
     { icon: '📦', label: '资产行政', desc: '资产/请假/报销/用章/会议', hash: '#/admin/asset', match: { prefix: 'admin' } },
     { icon: '🎯', label: '规划计划', desc: '项目协同/任务台/草案', hash: '#/plan/tracker', match: { prefix: 'plan', except: ['zhongyu'] } },
     { icon: '📖', label: '知识库', desc: '制度全文检索', hash: '#/wiki', match: { prefix: 'wiki' } },
+    { icon: '🧰', label: '个人宝典', desc: '方法论·复盘·模板', hash: '#/treasury', match: { prefix: 'treasury' } },
     { icon: '⭐', label: '快捷入口', desc: '钟喻个人任务台', hash: '#/plan/zhongyu', match: { exact: 'zhongyu' } },
   ];
 
@@ -64,6 +65,7 @@
     { icon: '📚', label: '课程管理', hash: '#/training', match: { prefix: 'training' } },
     { icon: '🎯', label: '项目协同', hash: '#/plan/tracker', match: { prefix: 'plan', except: ['zhongyu'] } },
     { icon: '📖', label: '制度知识库', hash: '#/wiki', match: { prefix: 'wiki' } },
+    { icon: '🧰', label: '个人宝典', hash: '#/treasury', match: { path: '/treasury' } },
     { icon: '📊', label: '日周月报', hash: '#/reports', match: { path: '/reports' } },
     { icon: '✅', label: '审核流看板', hash: '#/review', match: { path: '/review' } },
     { icon: '🤖', label: 'AI 试点台', hash: '#/ai-pilot', match: { path: '/ai-pilot' } },
@@ -127,7 +129,7 @@
           '<div class="ms-grid">' + cardsHtml + '</div>' +
           '<div class="ms-sub-head">常用看板</div>' +
           '<div class="ms-sub-grid">' + subHtml + '</div>' +
-          '<div class="ms-foot">共 8 大模块 · 点击卡片进入对应系统</div>' +
+          '<div class="ms-foot">共 9 大模块 · 点击卡片进入对应系统</div>' +
         '</div>';
     }
   };
