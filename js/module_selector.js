@@ -49,6 +49,7 @@
     { icon: '🎯', label: '规划计划', desc: '项目协同/任务台/草案', hash: '#/plan/tracker', match: { prefix: 'plan', except: ['zhongyu'] } },
     { icon: '📖', label: '知识库', desc: '制度全文检索', hash: '#/wiki', match: { prefix: 'wiki' } },
     { icon: '🧰', label: '个人宝典', desc: '方法论·复盘·模板', hash: '#/treasury', match: { prefix: 'treasury' } },
+    { icon: '🛠️', label: '协同链路', desc: '会议到预警全链路 SOP', hash: '#/ops-chain', match: { prefix: 'ops-chain' } },
     { icon: '⭐', label: '快捷入口', desc: '钟喻个人任务台', hash: '#/plan/zhongyu', match: { exact: 'zhongyu' } },
   ];
 
@@ -70,6 +71,7 @@
     { icon: '✅', label: '审核流看板', hash: '#/review', match: { path: '/review' } },
     { icon: '🤖', label: 'AI 试点台', hash: '#/ai-pilot', match: { path: '/ai-pilot' } },
     { icon: '📈', label: '数字员工运营', hash: '#/ai-ops', match: { path: '/ai-ops' } },
+    { icon: '🛠️', label: '会议到预警链路', hash: '#/ops-chain', match: { path: '/ops-chain' } },
   ];
 
   function isActive(mod, parts) {
