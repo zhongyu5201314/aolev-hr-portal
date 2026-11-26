@@ -123,7 +123,7 @@
         '<div class="ms-page">' +
           '<a class="ms-home" href="#/">🏠 首页 · 模块选择</a>' +
           '<h2 class="ms-title">模块选择</h2>' +
-          '<div class="ms-subtitle">奥乐V 人事行政系统 · 一键直达各业务模块</div>' +
+          '<div class="ms-subtitle">喻哥全能HR门户 · 一键直达各业务模块</div>' +
           '<div class="ms-grid">' + cardsHtml + '</div>' +
           '<div class="ms-sub-head">常用看板</div>' +
           '<div class="ms-sub-grid">' + subHtml + '</div>' +

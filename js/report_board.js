@@ -24,8 +24,6 @@
     /* 头部 */
     '.rb-head h1{font-size:20px;font-weight:700;margin:0 0 4px;color:#fff}',
     '.rb-head .sub{font-size:12px;color:var(--rb-muted);margin:0 0 16px}',
-    '.rb-doc-link{display:inline-block;margin:0 0 14px;font-size:13px;font-weight:600;color:var(--rb-accent);text-decoration:none}',
-    '.rb-doc-link:hover{text-decoration:underline}',
     /* 筛选条（吸顶） */
     '.rb-filter{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:rgba(15,15,26,.85);backdrop-filter:blur(6px);padding:10px 12px;border:1px solid var(--rb-border);border-radius:12px;margin-bottom:14px}',
     '.rb-filter select,.rb-filter input{background:var(--rb-card);color:var(--rb-ink);border:1px solid var(--rb-border);border-radius:8px;padding:6px 10px;font-size:13px}',
@@ -313,7 +311,7 @@
   }
 
   function renderTabs() {
-    var tabs = [['cockpit', '驾驶舱'], ['daily', '日报'], ['weekly', '周报'], ['monthly', '月报'], ['loop', '闭环管控']];
+    var tabs = [['daily', '日报'], ['weekly', '周报'], ['monthly', '月报']];
     return '<div class="rb-tabs">' + tabs.map(function (t) {
       return '<button class="rb-tab' + (state.tab === t[0] ? ' is-active' : '') + '" data-tab="' + t[0] + '">' + t[1] + '</button>';
     }).join('') + '</div>';
@@ -373,31 +371,11 @@
   function renderBodyHtml() {
     if (state.tab === 'daily') return renderDailyList();
     if (state.tab === 'weekly') return renderWeeklyList();
-    if (state.tab === 'cockpit') {
-      return (global.ReportCockpit && global.ReportCockpit.renderBody)
-        ? global.ReportCockpit.renderBody()
-        : '<div class="rb-empty"><span class="ico">⚠️</span>驾驶舱模块未加载（js/cockpit.js 缺失）</div>';
-    }
-    if (state.tab === 'loop') {
-      // 闭环管控页自带统计口径与筛选，交由 report_loop.js 全权渲染
-      return (global.ReportLoop && global.ReportLoop.renderBody)
-        ? global.ReportLoop.renderBody()
-        : '<div class="rb-empty"><span class="ico">⚠️</span>闭环管控模块未加载（js/report_loop.js 缺失）</div>';
-    }
     return renderMonthly();
   }
 
   function renderMainHtml() {
-    // 闭环管控页不使用日报/周报的「人员-部门-月份」筛选条（语义不同），故隐藏
-    var filterHtml = (state.tab === 'loop' || state.tab === 'cockpit') ? '' : renderFilter();
-    return filterHtml + renderTabs() + '<div class="rb-body" id="rbBody">' + renderBodyHtml() + '</div>';
-  }
-
-  /* 驾驶舱挂载钩子：cockpit 页签渲染进 DOM 后，初始化其 ECharts 图表 */
-  function afterRender() {
-    if (state.tab === 'cockpit' && global.ReportCockpit && global.ReportCockpit.mount) {
-      global.ReportCockpit.mount();
-    }
+    return renderFilter() + renderTabs() + '<div class="rb-body" id="rbBody">' + renderBodyHtml() + '</div>';
   }
 
   /* ====================== 弹窗 ====================== */
@@ -479,7 +457,6 @@
   function resetFilters() {
     state.filters = { person: 'all', dept: 'all', start: '', end: '', weekMonth: 'all' };
     var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
-    afterRender();
   }
 
   function onViewClick(e) {
@@ -490,15 +467,6 @@
     if (tab) {
       state.tab = tab.getAttribute('data-tab');
       var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
-      afterRender();
-      return;
-    }
-    // 1.5) 驾驶舱下钻（data-drill 切换页签，隔离于 tab 样式）
-    var drill = t.closest('[data-drill]');
-    if (drill) {
-      state.tab = drill.getAttribute('data-drill');
-      var main = U.el('rbMain'); if (main) main.innerHTML = renderMainHtml();
-      afterRender();
       return;
     }
     // 2) 重置
@@ -537,8 +505,6 @@
     view.__rbBound = '1';
     view.addEventListener('click', onViewClick);
     view.addEventListener('change', onViewChange);
-    // 闭环管控页签的一次性事件委托（自带月份选择器）
-    if (global.ReportLoop && global.ReportLoop.bindOnce) global.ReportLoop.bindOnce();
   }
 
   /* ====================== 入口 ====================== */
@@ -560,13 +526,11 @@
       (meta.weekly_count || 0) + ' 条周报 · 同步于 ' + (meta.synced_at || '—');
 
     view.innerHTML = '<div class="rb"><div class="rb-page">' +
-      '<div class="rb-head"><h1>📊 日周月报</h1><p class="sub">' + esc(sub) + '</p>' +
-      '<a class="rb-doc-link" href="dept-review-2026-11.html" target="_blank" rel="noopener">📄 部门10月复盘暨11月规划 →</a></div>' +
+      '<div class="rb-head"><h1>📊 日周月报</h1><p class="sub">' + esc(sub) + '</p></div>' +
       '<div class="rb-main" id="rbMain">' + renderMainHtml() + '</div>' +
       '</div></div>';
 
     bindDelegation();
-    afterRender();
   }
 
   // 全局导出（主名 ReportBoard，别名 Reports 兼容设计稿命名）

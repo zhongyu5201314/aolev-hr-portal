@@ -1,5 +1,5 @@
 /* =========================================================================
- * styles.css — 奥乐V 人事行政系统（科技蓝紫 · 浅色主题）
+ * styles.css — 喻哥全能HR门户（科技蓝紫 · 浅色主题）
  * 设计令牌见 system-design.md §9
  * ========================================================================= */
 :root {
@@ -42,12 +42,6 @@ button, input, select, textarea { font-family: inherit; font-size: 14px; }
 /* ---------- 布局骨架 ---------- */
 .app-layout { min-height: 100vh; display: flex; flex-direction: column; }
 .app-body { display: flex; flex: 1; min-height: 0; }
-
-/* 驾驶舱纯全屏模式：彻底隐藏门户顶栏/侧栏与内容区，仅露出大屏 iframe */
-body.cockpit-mode .topbar,
-body.cockpit-mode .sidebar,
-body.cockpit-mode #view { display: none !important; }
-body.cockpit-mode .app-body { overflow: hidden; }
 
 /* ---------- 顶栏 ---------- */
 .topbar {

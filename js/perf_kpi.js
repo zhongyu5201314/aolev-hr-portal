@@ -297,7 +297,7 @@
     saveFL(store); return { closed: n, conflict: conflict };
   }
   function buildFLReport(items) {
-    var lines = ['# 奥乐V 绩效问题跟进闭环表（' + (PK_PERIOD === '6' ? '2026年6月' : '2026年7月') + '）', '', '- 生成时间：' + nowTs(), '- 跟进项：' + items.length, ''];
+    var lines = ['# 喻哥全能HR门户 · 绩效问题跟进闭环表（' + (PK_PERIOD === '6' ? '2026年6月' : '2026年7月') + '）', '', '- 生成时间：' + nowTs(), '- 跟进项：' + items.length, ''];
     lines.push('| 类型 | 被考核人 | 部门 | 目标 | 达成率 | 状态 | 负责人 | 截止日 | 规划措施 | 处理记录 |');
     lines.push('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
     items.forEach(function (it) {
@@ -517,11 +517,11 @@
         u.goals.slice(0, 3).forEach(function (g) { lines.push('   - ' + (g.goal || '（无目标描述）')); });
         if (u.goals.length > 3) lines.push('   - …（其余 ' + (u.goals.length - 3) + ' 条）');
       });
-      lines.push('', '— 来自奥乐V HR 数智化系统 KPI 看板');
+      lines.push('', '— 来自喻哥全能HR门户 KPI 看板');
       return lines.join('\n');
     }
     function buildWeakReport() {
-      var lines = ['# 奥乐V 绩效改进短板报告（' + (isJune ? '2026年6月' : '2026年7月') + '）', ''];
+      var lines = ['# 喻哥全能HR门户 · 绩效改进短板报告（' + (isJune ? '2026年6月' : '2026年7月') + '）', ''];
       lines.push('- 整体达成率：' + reachRate + '%');
       lines.push('- 已打分 ' + scoredN + ' / 未打分 ' + unsavedN + '（共 ' + total + ' 条目标）');
       lines.push('- 低达成率目标（<90%）：' + lowList.length + ' 条');
@@ -697,7 +697,7 @@
         var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
         var url = URL.createObjectURL(blob);
         var a = document.createElement('a');
-        a.href = url; a.download = '奥乐V绩效短板报告_' + (isJune ? '2026-06' : '2026-07') + '.md';
+        a.href = url; a.download = '喻哥全能HR门户_绩效短板报告_' + (isJune ? '2026-06' : '2026-07') + '.md';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
         if (U.toast) U.toast('短板报告已导出', 'success');
@@ -748,7 +748,7 @@
       try {
         var blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
         var url = URL.createObjectURL(blob); var a = document.createElement('a');
-        a.href = url; a.download = '奥乐V绩效问题跟进闭环_' + (isJune ? '2026-06' : '2026-07') + '.md';
+        a.href = url; a.download = '喻哥全能HR门户_绩效问题跟进闭环_' + (isJune ? '2026-06' : '2026-07') + '.md';
         document.body.appendChild(a); a.click(); document.body.removeChild(a);
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
         if (U.toast) U.toast('跟进表已导出', 'success');

@@ -94,7 +94,7 @@
     }).join('');
     view.innerHTML =
       '<div class="wiki-hero">' +
-        '<div class="wiki-hero__title">奥乐V 制度知识库</div>' +
+        '<div class="wiki-hero__title">喻哥全能HR门户 · 制度知识库</div>' +
         '<div class="wiki-search"><input id="wiki-search" placeholder="搜索制度 / 政策 / SOP / 绩效 / 激励 …" />' +
         '<button class="btn btn--primary" id="wiki-search-btn">搜索</button></div>' +
       '</div>' +
